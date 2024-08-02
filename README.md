@@ -15,3 +15,4 @@ General Plan
 2. Terminal
 3. Dialog
 4. Button
+5. JSON to define UI elements
