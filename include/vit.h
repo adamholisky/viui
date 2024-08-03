@@ -25,9 +25,13 @@ extern "C" {
 /**************************************/
 
 #ifdef VI_ENV_OS
-	#define vit_malloc kmalloc
+	#define vmalloc kmalloc
+	#define vdebugf debugf
+	#define vdf debugf
 #else
-	#define vit_malloc malloc
+	#define vmalloc malloc
+	#define vdebugf printf
+	#define vdf printf
 #endif
 
 #ifdef __cplusplus
