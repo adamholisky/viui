@@ -7,11 +7,22 @@ uint16_t font_id_top;
 vui_font fonts;
 vui_font *main_font;
 
+/**
+ * @brief Initalize the font system
+ * 
+ */
 void vui_font_initalize( void ) {
 	fonts.next = NULL;	
 	font_id_top = 0;
 }
 
+/**
+ * @brief Loads the provided font
+ * 
+ * @param type Type of font: VUI_FONT_TYPE_
+ * @param name Display and search name of the font
+ * @param font_path Path to the font on the file system
+ */
 void vui_font_load( uint8_t type, char *name, char *font_path ) {
 	vui_font *font_data_to_use = NULL;
 	bool found = false;
