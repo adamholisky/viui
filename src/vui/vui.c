@@ -18,6 +18,7 @@ void vui_main_test_loop( void ) {
 	vui_font_load( VUI_FONT_TYPE_PSF, "Zap Light", "/usr/share/fonts/zap-light20.psf" );
 	#else
 	vui_font_load( VUI_FONT_TYPE_PSF, "Zap Light", "zap-light20.psf" );
+	vui_font_load( VUI_FONT_TYPE_PSF, "Zap VGA", "zap-ext-vga16.psf" );
 	#endif
 
 	vui_theme *theme = vui_get_active_theme();
@@ -27,12 +28,14 @@ void vui_main_test_loop( void ) {
 
 	vui_handle smooth_text = vui_label_create( 30, 100, "Adam Holisky Versions OS 6.0.0.1", VUI_LABEL_FLAG_NONE );
 
-	vui_handle not_smooth_text = vui_label_create( 30, 130, "Adam Holisky Versions OS 6.0.0.1", VUI_LABEL_FLAG_NO_SMOOTHING );
+	vui_handle not_smooth_text = vui_label_create( 30, 130, "ABCDEFGHIJKLMNOPQRSTUVWXYZ `1234567890-= ~!@#$%^&*()_+ \"\'/\\.,<>[]{}", VUI_LABEL_FLAG_NO_SMOOTHING );
 
 	vui_label_set_color( smooth_text, COLOR_RGB_BLACK, theme->window_background );
 	vui_label_set_color( not_smooth_text, COLOR_RGB_BLACK, theme->window_background );
 
-	vui_handle win = vui_window_create( 25, 25, 500, 400, VUI_WINDOW_FLAG_NONE );
+	vui_label_set_font( not_smooth_text, vui_font_get_font("Zap VGA") );
+
+	vui_handle win = vui_window_create( 25, 25, 800, 400, VUI_WINDOW_FLAG_NONE );
 	vui_window_set_title( win, "ViOS 6" );
 
 	vui_draw_handle( win );
@@ -244,13 +247,19 @@ void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32
 		vdf( "Cannot find bitmap for glyph number 0x%04X (%d).\n", char_num, char_num );
 	}
 
+	uint16_t width_mod = 0;
+
+	if( font->info.width <= 8 ) {
+		width_mod = 1;
+	}
+
 	//vdf( "printing: %c 0x%04X (%d).\n", bitmaps[index].num, bitmaps[index].num, bitmaps[index].num);
 	for( int i = 0; i < font->info.height; i++ ) {
 		uint32_t *loc = vui.buffer + ((y+i) * (vui.pitch / 4)) + x;
 
 		//vdf( "Row: %d == %X\n", i, bitmaps[index].pixel_row[i] );
 		//vdf( "\"" );
-		for( int j = 16; j != (16 - font->info.width); j-- ) {
+		for( int j = 16; j != (16 - font->info.width - width_mod); j-- ) {
 			if( ((font->bitmaps[index].pixel_row[i] >> j) & 0x1) ) {
 				//vdf( "*" );
 				*(loc + (16 - j)) = fg;
@@ -260,7 +269,7 @@ void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32
 					 * X!
 					 * !E
 					 */
-					if( (i + 1 <= font->info.height) && (j - 1 >= (16 - font->info.width)) ) { // 1 down and 1 right can happen
+					if( (i + 1 <= font->info.height) && (j - 1 >= (16 - font->info.width - width_mod)) ) { // 1 down and 1 right can happen
 						//debugf( "1 Can happen.\n" );
 						if( ((font->bitmaps[index].pixel_row[i + 1] >> (j-1)) & 0x1) ) { // if it exists
 							if( !((font->bitmaps[index].pixel_row[i + 1] >> j) & 0x1) ) {  // if 1 down from current j does not exit
@@ -280,7 +289,7 @@ void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32
 					 * !X
 					 * E!
 					 */
-					if( (i + 1 <= font->info.height) && (j + 1 >= (16 - font->info.width)) ) { // 1 down and 1 left can happen
+					if( (i + 1 <= font->info.height) && (j + 1 >= (16 - font->info.width -  width_mod)) ) { // 1 down and 1 left can happen
 						//vdf( "2 Can happen.\n" );
 						if( ((font->bitmaps[index].pixel_row[i + 1] >> (j+1)) & 0x1) ) { // if it exists
 							if( !((font->bitmaps[index].pixel_row[i + 1] >> j) & 0x1) ) {  // if 1 down from current j does not exit

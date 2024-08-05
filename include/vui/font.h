@@ -21,6 +21,7 @@ typedef struct {
 
 typedef struct {
 	uint16_t num;
+    
 	uint16_t pixel_row[20];
 } font_bitmap;
 

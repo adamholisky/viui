@@ -99,7 +99,7 @@ vui_font *vui_font_get_main_font( void ) {
  * @return true Font was loaded successfully
  * @return false Font failed to load
  */
-#undef KDEBUG_FONT_LOAD_PSF
+#define KDEBUG_FONT_LOAD_PSF
 bool vui_font_load_psf( vui_font *font ) {
 
 	#ifdef VI_ENV_OS
@@ -145,36 +145,74 @@ bool vui_font_load_psf( vui_font *font ) {
 
 	psf_font *header = (psf_font *)data;
 
-	font->bitmaps = vmalloc( sizeof(font_bitmap) * header->numglyph);
+	uint16_t header_size = 0;
 
-	uint16_t *start = (uint16_t *)(data + header->headersize);
+	if( (uint16_t)header->magic == PSF1_FONT_MAGIC ) {
+		psf1_header *v1_header = (psf1_header *)header;
+		font->info.num_glyphs = v1_header->fontMode & 0x1 ? 512 : 256;
+		font->info.height = v1_header->characterSize;
+		font->info.width = 8;
 
-    #ifdef KDEBUG_FONT_LOAD_PSF
-	vdf( "Number glyphs: %d\n", header->numglyph );
-	vdf( "Bytes per glyph: %d\n", header->bytesperglyph );
-	vdf( "Flags: %X\n", header->flags );
-	vdf( "Height: %d\n", header->height );
-	vdf( "Width: %d\n", header->width );
-	vdf( "uint16: %d\n", sizeof(uint16_t) );
-	vdf( "Header size: 0x%X\n", header->headersize );
-	vdf( "Data Start: 0x%016llx\n", data );
-	vdf( "Glyp Start: 0x%016llx\n", start );
-    #endif
+		#ifdef KDEBUG_FONT_LOAD_PSF
+		vdf( "Header type 1!\n" );
+		vdf( "Number glyphs: %d\n", font->info.num_glyphs );
+		vdf( "Height: %d\n", font->info.height );
+		vdf( "Width: %d\n", font->info.width );
+		#endif
 
-    font->info.height = header->height;
-    font->info.width = header->width;
-    font->info.num_glyphs = header->numglyph;
+		header_size = sizeof( psf1_header );
+	} else {
+		#ifdef KDEBUG_FONT_LOAD_PSF
+		vdf( "Header type 2!\n" );
+		vdf( "Number glyphs: %d\n", header->numglyph );
+		vdf( "Bytes per glyph: %d\n", header->bytesperglyph );
+		vdf( "Flags: %X\n", header->flags );
+		vdf( "Height: %d\n", header->height );
+		vdf( "Width: %d\n", header->width );
+		vdf( "uint16: %d\n", sizeof(uint16_t) );
+		vdf( "Header size: 0x%X\n", header->headersize );
+		#endif
 
-	for( int i = 0; i < header->numglyph; i++ ) {
-		font->bitmaps[i].num = i;
+		font->info.height = header->height;
+		font->info.width = header->width;
+		font->info.num_glyphs = header->numglyph;
 
-		for( int j = 0; j < 20; j++ ) {
-			font->bitmaps[i].pixel_row[j] = (*start << 8) | (*start  >> 8);
-
-			*start++;
-		}
+		header_size = sizeof( psf_font );
 	}
 
+	font->bitmaps = vmalloc( sizeof(font_bitmap) * font->info.num_glyphs);
+
+	
+
+	#ifdef KDEBUG_FONT_LOAD_PSF
+	vdf( "Data Start: 0x%016llx\n", data );
+    #endif
+
+	if( font->info.width <= 8 ) {
+		uint8_t *start = (uint8_t *)(data + header_size);
+
+		for( int i = 0; i < font->info.num_glyphs; i++ ) {
+			font->bitmaps[i].num = i;
+
+			for( int j = 0; j < font->info.height; j++ ) {
+				font->bitmaps[i].pixel_row[j] = (*start << 8);
+				
+				*start++;
+			}
+		}
+	} else {
+		uint16_t *start = (uint16_t *)(data + header_size);
+		for( int i = 0; i < font->info.num_glyphs; i++ ) {
+			font->bitmaps[i].num = i;
+
+			for( int j = 0; j < font->info.height; j++ ) {
+				font->bitmaps[i].pixel_row[j] = (*start << 8) | (*start  >> 8);
+				
+				*start++;
+			}
+		}
+	}
+	
     return true;
 }
 
