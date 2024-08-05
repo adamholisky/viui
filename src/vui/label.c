@@ -39,9 +39,9 @@ void vui_label_set_color( vui_handle H, uint32_t foreground, uint32_t background
 
 void vui_label_draw_from_struct( vui_label *label ) {
 	if( label->flags & VUI_LABEL_FLAG_NO_SMOOTHING ) {
-		vui_draw_string( label->text, label->x, label->y, label->color_foreground, label->color_background, false );
+		vui_draw_string( label->text, label->x, label->y, label->color_foreground, label->color_background, NULL, false );
 	} else {
-		vui_draw_string( label->text, label->x, label->y, label->color_foreground, label->color_background, true );
+		vui_draw_string( label->text, label->x, label->y, label->color_foreground, label->color_background, NULL, true );
 	}
 	
 }

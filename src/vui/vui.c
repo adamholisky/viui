@@ -12,10 +12,12 @@ vui_core vui;
  * 
  */
 void vui_main_test_loop( void ) {
+	vui_font_initalize();
+
 	#ifdef VI_END_OS
-	vui_font_load_psf( "/usr/share/fonts/zap-light20.psf" );
+	vui_font_load( VUI_FONT_TYPE_PSF, "Zap Light", "/usr/share/fonts/zap-light20.psf" );
 	#else
-	vui_font_load_psf( "zap-light20.psf" );
+	vui_font_load( VUI_FONT_TYPE_PSF, "Zap Light", "zap-light20.psf" );
 	#endif
 
 	vui_theme *theme = vui_get_active_theme();
@@ -195,10 +197,7 @@ void vui_draw_rect( uint16_t x, uint16_t y, uint16_t width, uint16_t height, uin
  * @param fg 
  * @param bg 
  */
-void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, bool smoothing ) {
-	font_bitmap *bitmaps = vui_font_get_main_bitmap();
-	font_info *info = vui_font_get_main_info();
-
+void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, bool smoothing ) {
  	uint8_t fg_red = (fg & 0x00FF0000) >> 16;
 	uint8_t fg_green = (fg & 0x0000FF00) >> 8;
 	uint8_t fg_blue = (fg & 0x000000FF);
@@ -234,10 +233,10 @@ void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32
     //vdf( "fg: 0x%X, bg: 0x%X, smoothing color: 0x%08X\n", fg, bg, smoothing_color );
 
 	int16_t index = -1;
-	for( int n = 0; n < info->num_glyphs; n++ ) {
-		if( bitmaps[n].num == char_num ) {
+	for( int n = 0; n < font->info.num_glyphs; n++ ) {
+		if( font->bitmaps[n].num == char_num ) {
 			index = n;
-			n = info->num_glyphs;
+			n = font->info.num_glyphs;
 		}
 	}
 
@@ -246,13 +245,13 @@ void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32
 	}
 
 	//vdf( "printing: %c 0x%04X (%d).\n", bitmaps[index].num, bitmaps[index].num, bitmaps[index].num);
-	for( int i = 0; i < info->height; i++ ) {
+	for( int i = 0; i < font->info.height; i++ ) {
 		uint32_t *loc = vui.buffer + ((y+i) * (vui.pitch / 4)) + x;
 
 		//vdf( "Row: %d == %X\n", i, bitmaps[index].pixel_row[i] );
 		//vdf( "\"" );
-		for( int j = 16; j != (16 - info->width); j-- ) {
-			if( ((bitmaps[index].pixel_row[i] >> j) & 0x1) ) {
+		for( int j = 16; j != (16 - font->info.width); j-- ) {
+			if( ((font->bitmaps[index].pixel_row[i] >> j) & 0x1) ) {
 				//vdf( "*" );
 				*(loc + (16 - j)) = fg;
 
@@ -261,15 +260,15 @@ void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32
 					 * X!
 					 * !E
 					 */
-					if( (i + 1 <= info->height) && (j - 1 >= (16 - info->width)) ) { // 1 down and 1 right can happen
+					if( (i + 1 <= font->info.height) && (j - 1 >= (16 - font->info.width)) ) { // 1 down and 1 right can happen
 						//debugf( "1 Can happen.\n" );
-						if( ((bitmaps[index].pixel_row[i + 1] >> (j-1)) & 0x1) ) { // if it exists
-							if( !((bitmaps[index].pixel_row[i + 1] >> j) & 0x1) ) {  // if 1 down from current j does not exit
+						if( ((font->bitmaps[index].pixel_row[i + 1] >> (j-1)) & 0x1) ) { // if it exists
+							if( !((font->bitmaps[index].pixel_row[i + 1] >> j) & 0x1) ) {  // if 1 down from current j does not exit
 								//vdf( "AA apply!\n" );
 								*(loc + (vui.pitch / 4) + (16 - j)) = smoothing_color;// then fill it
 							}
 
-							if( !((bitmaps[index].pixel_row[i] >> (j-1)) & 0x1) ) {  // if 1 over from current j does not exit
+							if( !((font->bitmaps[index].pixel_row[i] >> (j-1)) & 0x1) ) {  // if 1 over from current j does not exit
 								//debugf( "AA apply!\n" );
 								*(loc + (16 - j + 1)) = smoothing_color;// then fill it
 							}
@@ -281,15 +280,15 @@ void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32
 					 * !X
 					 * E!
 					 */
-					if( (i + 1 <= info->height) && (j + 1 >= (16 - info->width)) ) { // 1 down and 1 left can happen
+					if( (i + 1 <= font->info.height) && (j + 1 >= (16 - font->info.width)) ) { // 1 down and 1 left can happen
 						//vdf( "2 Can happen.\n" );
-						if( ((bitmaps[index].pixel_row[i + 1] >> (j+1)) & 0x1) ) { // if it exists
-							if( !((bitmaps[index].pixel_row[i + 1] >> j) & 0x1) ) {  // if 1 down from current j does not exit
+						if( ((font->bitmaps[index].pixel_row[i + 1] >> (j+1)) & 0x1) ) { // if it exists
+							if( !((font->bitmaps[index].pixel_row[i + 1] >> j) & 0x1) ) {  // if 1 down from current j does not exit
 								//vdf( "smoothing 2a\n" );
 								*(loc + (vui.pitch / 4) + (16 - j)) = smoothing_color;// then fill it
 							}
 
-							if( !((bitmaps[index].pixel_row[i] >> (j + 1)) & 0x1) ) {  // if 1 across from current j does not exit
+							if( !((font->bitmaps[index].pixel_row[i] >> (j + 1)) & 0x1) ) {  // if 1 across from current j does not exit
 								//vdf( "smoothing 2b\n" );
 								*(loc + (16 - j - 1)) = smoothing_color;// then fill it
 							}
@@ -306,16 +305,16 @@ void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32
 	}
 }
 
-void vui_draw_string( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, bool smoothing ) {
+void vui_draw_string( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, bool smoothing ) {
 	int len = strlen(s);
 	int current_x = x;
-	font_info *info = vui_font_get_main_info();
+	vui_font *f = ( font == NULL ? vui_font_get_main_font() : font );
 
 	vdf( "Smoothing: %d\n", smoothing );
 
 	for( int i = 0; i < len; i++ ) {
-		vui_draw_char_with_color( *s, current_x, y, fg, bg, smoothing );
+		vui_draw_char_with_color( *s, current_x, y, fg, bg, f, smoothing );
 		s++;
-		current_x = current_x + info->width;
+		current_x = current_x + f->info.width;
 	}
 }

@@ -2,25 +2,83 @@
 #include "vui/vui.h"
 #include "vui/font.h"
 
-font_bitmap *main_font_bitmaps = NULL;
-font_info main_font_info;
+uint16_t font_id_top;
+
+vui_font fonts;
+vui_font *main_font;
+
+void vui_font_initalize( void ) {
+	fonts.next = NULL;	
+	font_id_top = 0;
+}
+
+void vui_font_load( uint8_t type, char *name, char *font_path ) {
+	vui_font *font_data_to_use = NULL;
+	bool found = false;
+
+	font_data_to_use = &fonts;
+
+	if( font_id_top != 0 ) {
+		font_data_to_use = &fonts;
+		do {
+			if( font_data_to_use->next == NULL ) {
+				font_data_to_use->next = vmalloc( sizeof(vui_font) );
+				font_data_to_use = font_data_to_use->next;
+
+				memset( font_data_to_use, 0, sizeof(vui_font) );
+				font_data_to_use->info.id = font_id_top++;
+				strcpy( font_data_to_use->info.name, name );
+				strcpy( font_data_to_use->info.path, font_path );
+
+				found = true;
+			} else {
+				font_data_to_use = font_data_to_use->next;
+			}
+		} while( font_data_to_use != NULL && !found );
+	} else {
+		memset( font_data_to_use, 0, sizeof(vui_font) );
+		font_data_to_use->info.id = font_id_top++;
+		strcpy( font_data_to_use->info.name, name );
+		strcpy( font_data_to_use->info.path, font_path );
+		main_font = font_data_to_use;
+	}
+
+	switch( type ) {
+		case VUI_FONT_TYPE_PSF:
+			vui_font_load_psf( font_data_to_use );
+			break;
+		default:
+			vdf( "Font Load: Unknown type. Got: %d.\n", type );
+	}
+}
+
+/**
+ * @brief Returns the font matching the provided name, otherwise NULL
+ * 
+ * @param name Name of the font that was previously loaded
+ * @return vui_font* Pointer to the font structure, NULL on failure
+ */
+vui_font *vui_font_get_font( char *name ) {
+	vui_font *font = &fonts;
+
+	do {
+		if( strcmp(font->info.name, name) == 0 ) {
+			return font;
+		}
+
+		font = font->next;
+	} while( font != NULL );
+
+	return font;
+}
 
 /**
  * @brief Returns the active font's bitmap
  * 
  * @return font_bitmap* pointer to the bitmap array for the given font, NULL if none were loaded 
  */
-font_bitmap *vui_font_get_main_bitmap( void ) {
-    return main_font_bitmaps;
-}
-
-/**
- * @brief Returns the main font's info
- * 
- * @return font_info* point to the font_info struct for the main font
- */
-font_info *vui_font_get_main_info( void ) {
-    return &main_font_info;
+vui_font *vui_font_get_main_font( void ) {
+    return main_font;
 }
 
 /**
@@ -31,13 +89,13 @@ font_info *vui_font_get_main_info( void ) {
  * @return false Font failed to load
  */
 #undef KDEBUG_FONT_LOAD_PSF
-bool vui_font_load_psf( char *font_path ) {
+bool vui_font_load_psf( vui_font *font ) {
 
 	#ifdef VI_ENV_OS
 	vfs_stat_data stats;
 	uint32_t file_size;
 
-	int stat_error = vfs_stat( vfs_lookup_inode(font_path), &stats );
+	int stat_error = vfs_stat( vfs_lookup_inode(font->info.path), &stats );
 	if( stat_error != VFS_ERROR_NONE ) {
 		debugf( "Error: %d\n", stat_error );
 		return false;
@@ -46,28 +104,28 @@ bool vui_font_load_psf( char *font_path ) {
 	file_size = stats.size;
 
 	uint8_t *data = vmalloc( file_size );
-	int read_err = vfs_read( vfs_lookup_inode(font_path), data, file_size, 0 );
+	int read_err = vfs_read( vfs_lookup_inode(font->info.path), data, file_size, 0 );
 	if( read_err < VFS_ERROR_NONE ) {
 		debugf( "Error when reading: %d\n", read_err );
 		return false;
 	}
 	#else
-	FILE *f = fopen( font_path, "r" );
+	FILE *f = fopen( font->info.path, "r" );
 
 	if( f == NULL ) {
-		vdf( "Cannot open %s, f returned NULL.\n", font_path );
+		vdf( "Cannot open %s, f returned NULL.\n", font->info.path );
 		return false;
 	}
 
 	struct stat file_meta;
-	stat( font_path, &file_meta );
+	stat( font->info.path, &file_meta );
 
 	uint32_t file_size = file_meta.st_size;
 
 	uint8_t *data = vmalloc( file_size );
 
 	if( fread( data, file_size, 1, f ) != 1 ) {
-		vdf( "Read failed on %s, fread returned not 1.\n", font_path );
+		vdf( "Read failed on %s, fread returned not 1.\n", font->info.path );
 		return false;
 	}
 	#endif
@@ -76,7 +134,7 @@ bool vui_font_load_psf( char *font_path ) {
 
 	psf_font *header = (psf_font *)data;
 
-	main_font_bitmaps = vmalloc( sizeof(font_bitmap) * header->numglyph);
+	font->bitmaps = vmalloc( sizeof(font_bitmap) * header->numglyph);
 
 	uint16_t *start = (uint16_t *)(data + header->headersize);
 
@@ -92,15 +150,15 @@ bool vui_font_load_psf( char *font_path ) {
 	vdf( "Glyp Start: 0x%016llx\n", start );
     #endif
 
-    main_font_info.height = header->height;
-    main_font_info.width = header->width;
-    main_font_info.num_glyphs = header->numglyph;
+    font->info.height = header->height;
+    font->info.width = header->width;
+    font->info.num_glyphs = header->numglyph;
 
 	for( int i = 0; i < header->numglyph; i++ ) {
-		main_font_bitmaps[i].num = i;
+		font->bitmaps[i].num = i;
 
 		for( int j = 0; j < 20; j++ ) {
-			main_font_bitmaps[i].pixel_row[j] = (*start << 8) | (*start  >> 8);
+			font->bitmaps[i].pixel_row[j] = (*start << 8) | (*start  >> 8);
 
 			*start++;
 		}
