@@ -14,8 +14,9 @@ vui_core vui;
 void vui_main_test_loop( void ) {
 	vui_font_initalize();
 
-	#ifdef VI_END_OS
+	#ifdef VI_ENV_OS
 	vui_font_load( VUI_FONT_TYPE_PSF, "Zap Light", "/usr/share/fonts/zap-light20.psf" );
+	vui_font_load( VUI_FONT_TYPE_PSF, "Zap VGA", "/usr/share/fonts/zap-ext-vga16.psf" );
 	#else
 	vui_font_load( VUI_FONT_TYPE_PSF, "Zap Light", "zap-light20.psf" );
 	vui_font_load( VUI_FONT_TYPE_PSF, "Zap VGA", "zap-ext-vga16.psf" );
@@ -66,7 +67,9 @@ void vui_init( uint32_t *fb_addr, uint16_t width, uint16_t height ) {
 	vui.active_theme.window_title_bar_background = 0x00363636;
 	vui.active_theme.window_title_bar_foreground = 0x00EAEAEA;
 
+	#ifndef VI_ENV_OS
 	vui_main_test_loop();
+	#endif
 }
 
 vui_handle vui_allocate_handle( uint16_t type ) {
@@ -236,6 +239,7 @@ void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32
     //vdf( "fg: 0x%X, bg: 0x%X, smoothing color: 0x%08X\n", fg, bg, smoothing_color );
 
 	int16_t index = -1;
+	
 	for( int n = 0; n < font->info.num_glyphs; n++ ) {
 		if( font->bitmaps[n].num == char_num ) {
 			index = n;

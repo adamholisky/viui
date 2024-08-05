@@ -12,6 +12,8 @@ extern "C" {
 
 #ifdef VI_ENV_OS
 	#include <kernel_common.h>
+	#include <vfs.h>
+	#include <fs.h>
 #else
 	#include <stdio.h>
 	#include <stdlib.h>
