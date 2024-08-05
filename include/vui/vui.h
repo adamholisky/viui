@@ -19,6 +19,7 @@ extern "C" {
 #define VUI_HANDLE_TYPE_LABEL 2
 #define VUI_HANDLE_TYPE_BUTTON 3
 #define VUI_HANDLE_TYPE_DESKTOP 4
+#define VUI_HANDLE_TYPE_CONSOLE 5
 
 typedef uint32_t vui_handle;
 
@@ -75,6 +76,7 @@ void vui_main_test_loop( void );
 void vui_draw_rect( uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color );
 void vui_draw_string( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, bool smoothing );
 void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, bool smoothing );
+void vui_move_rect( uint32_t dest_x, uint32_t dest_y, uint32_t dest_w, uint32_t dest_h, uint32_t src_x, uint32_t src_y, uint32_t src_w, uint32_t src_h );
 
 #ifdef __cplusplus
 }

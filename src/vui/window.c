@@ -2,6 +2,8 @@
 #include "vui/window.h"
 
 vui_handle vui_window_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t flags ) {
+	vdf( "Create Window: x: %d    y: %d    width: %d    height: %d\n", x, y, width, height );
+
 	vui_theme *theme = vui_get_active_theme();
 	vui_window *window = vmalloc( sizeof(vui_window) );
 
@@ -35,6 +37,9 @@ vui_handle vui_window_create( uint16_t x, uint16_t y, uint16_t width, uint16_t h
 	window->color_background = theme->window_background;
 
 	memset( window->title, 0, VUI_WINDOW_TITLE_MAX );
+
+	vdf( "    Final Window: x: %d    y: %d    width: %d    height: %d\n", window->x, window->y, window->width, window->height );
+	vdf( "    Inner Window: x: %d    y: %d    width: %d    height: %d\n", window->inner_x, window->inner_y, window->inner_width, window->inner_height );
 
 	return H;
 }
