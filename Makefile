@@ -32,7 +32,7 @@ VPATH = $(shell find $(SOURCE_DIR) -type d -printf "$(SOURCE_DIR_NAME)/%P:")
 CC := /usr/bin/gcc
 LD := /usr/bin/ld
 DEFINES := -DVI_ENV_DEV
-CFLAGS := -g -O0 -I$(HEADER_DIR)
+CFLAGS := -g -O0 -I$(HEADER_DIR) -lSDL2 -I/usr/include/SDL2
 LDFLAGS := 
 
 # Helpers

@@ -16,9 +16,14 @@ extern "C" {
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include <string.h>
+	#include <sys/stat.h>
+    #include <dirent.h>
+    #include <unistd.h>
+    #include <errno.h>
 #endif
 
 #include "lib/bitmap.h"
+#include "vui/vui.h"
 
 /**************************************/
 /* System API Macro Config            */
@@ -33,6 +38,19 @@ extern "C" {
 	#define vdebugf printf
 	#define vdf printf
 #endif
+
+/**************************************/
+/* Functions                          */
+/**************************************/
+
+#ifdef VI_ENV_OS
+	#define vit_gui_test ;
+	#define vit_gui_update ;
+#else
+	void vit_gui_test( void );
+	void vit_gui_update( void );
+#endif
+
 
 #ifdef __cplusplus
 }

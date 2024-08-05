@@ -1,11 +1,74 @@
 #include "vit.h"
+#include <SDL.h>
+#include <SDL_render.h>
+
+#ifndef VI_ENV_OS
 
 int main( int argc, char *argv[] ) {
     printf( "VI Tests\n" );
 
-    vit_bitmap_tests( argc, argv );
+    //vit_bitmap_tests( argc, argv );
+
+    vit_gui_test();
+
 
     printf( "Done.\n" );
 
     return 0;
 }
+
+#define SCREEN_HEIGHT 768
+#define SCREEN_WIDTH 1024
+
+SDL_Window *window = NULL;
+
+/**
+ * @brief Run the gui tests with SDL providing the interfaces
+ * 
+ */
+void vit_gui_test( void ) {
+    // Setup the SDL environment
+    SDL_Surface *screen_surface = NULL;
+
+    if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
+        printf( "SDL_Init failed: %s\n", SDL_GetError() );
+        return;
+    }
+
+    window = SDL_CreateWindow( "VIOS UI Window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+
+    if( window == NULL ) {
+        printf( "SDL Window error: %s\n", SDL_GetError() );
+        return;
+    }
+
+    screen_surface = SDL_GetWindowSurface( window );
+    SDL_FillRect( screen_surface, NULL, 0x00374760 );
+    SDL_UpdateWindowSurface( window );
+
+    // Setup the framebuffer
+    uint32_t *fb = (uint32_t *)screen_surface->pixels;
+    /* fb[ (10*SCREEN_WIDTH) + 10 ] = 0x00FFFFFF;
+    fb[ (10*SCREEN_WIDTH) + 11 ] = 0x00FFFFFF;
+    SDL_UpdateWindowSurface( window ); */
+
+    // Enter VUI's GUI
+    vui_init( fb, SCREEN_WIDTH, SCREEN_HEIGHT );
+
+    // Main SDL loop
+    SDL_Event e; bool quit = false; while( quit == false ){ while( SDL_PollEvent( &e ) ){ if( e.type == SDL_QUIT ) quit = true; } }
+
+    // Clean up
+    SDL_DestroyWindow( window );
+    SDL_Quit();
+}
+
+/**
+ * @brief This has to be run whenver we want to update the SDL window
+ * 
+ */
+void vit_gui_update( void ) {
+    SDL_UpdateWindowSurface( window );
+}
+
+#endif
