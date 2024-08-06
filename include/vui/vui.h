@@ -27,6 +27,12 @@ typedef struct {
 	vui_handle H;
 	uint16_t type;
 	void *data;
+} vui_handles;
+
+typedef struct {
+	vui_handle H;
+
+	void *next;
 } vui_handle_list;
 
 typedef struct {
@@ -46,9 +52,17 @@ typedef struct {
 
 	vui_theme active_theme;
 
-	vui_handle_list handles[VUI_HANDLES_MAX];
+	vui_handles handles[VUI_HANDLES_MAX];
 	vui_handle handle_next;
 } vui_core;
+
+typedef struct {
+	uint16_t type;
+	vui_handle id;
+	vui_handle parent;
+	vui_handle_list children;
+	uint32_t priority;
+} vui_common;
 
 /**************************************/
 /* Core Functions                     */
