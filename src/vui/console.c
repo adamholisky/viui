@@ -43,8 +43,19 @@ vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t 
 	for( int i = 0; i < con->num_rows; i++ ) {
 		con->rows[i].buff = vmalloc( sizeof(char) * con->num_cols );
 		memset( con->rows[i].buff, 0, sizeof(char) * con->num_cols );
-		con->rows[i].color = vmalloc( sizeof(uint32_t) * con->num_cols );
-		memset( con->rows[i].color, 0, sizeof(uint32_t) * con->num_cols );
+
+		con->rows[i].color_fg = vmalloc( sizeof(uint32_t) * con->num_cols );
+		memset( con->rows[i].color_fg, 0, sizeof(uint32_t) * con->num_cols );
+
+		con->rows[i].color_bg = vmalloc( sizeof(uint32_t) * con->num_cols );
+		memset( con->rows[i].color_bg, 0, sizeof(uint32_t) * con->num_cols );
+
+		con->rows[i].color_set_fg = vmalloc( sizeof(uint8_t) * con->num_cols );
+		memset( con->rows[i].color_set_fg, 0, sizeof(uint8_t) * con->num_cols );
+
+		con->rows[i].color_set_bg = vmalloc( sizeof(uint8_t) * con->num_cols );
+		memset( con->rows[i].color_set_bg, 0, sizeof(uint8_t) * con->num_cols );
+
 		con->rows[i].dirty = false;
 	}
 
@@ -54,6 +65,12 @@ vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t 
 
 	con->show_cursor = false;
 	con->blink_hidden = false;
+
+	con->capturing_escape_code = false;
+	con->capture_num = 0;
+	con->use_color_override_bg = false;
+	con->use_color_override_fg = false;
+	memset( con->captured_escape, 0, 25 );
 
 	return H;
 }
@@ -73,10 +90,21 @@ void vui_console_draw_from_struct( vui_console *con ) {
 			for( int j = 0; j < con->num_cols; j++ ) {
 				char c = (con->rows[i].buff[j] == 0 ? ' ' : con->rows[i].buff[j]);
 
-				vui_draw_char_with_color( c, x, y, con->fg_color, con->bg_color, con->font, true );
+				uint32_t fg = con->rows[i].color_set_fg[j] != 0 ? con->rows[i].color_fg[j] : con->fg_color;
+				uint32_t bg = con->rows[i].color_set_bg[j] != 0 ? con->rows[i].color_bg[j] : con->bg_color;
+
+				vdf( "draw fg: %08X\n", fg );
+
+				if( con->rows[i].color_set_bg[j] != 0 ) {
+					//vui_draw_rect( x, y, con->char_width, con->char_height, bg );
+				}
+
+				vui_draw_char_with_color( c, x, y, fg, bg, con->font, true );
 
 				x = x + con->char_width;
 			}
+
+			con->rows[i].dirty = false;
 		}
 	}
 
@@ -94,7 +122,13 @@ void vui_console_put_char_at( vui_console *con, uint8_t c, uint16_t row, uint16_
 	bool cursor_visibility = con->show_cursor;
 	con->show_cursor = false;
 
+	//vdf( "new c: %x\n", c );
+
 	switch( c ) {
+		case '\x1b':
+			con->capturing_escape_code = true;
+			con->capture_num = 0;
+			break;
 		case '\t':
 			vui_console_do_tab( con );
 			break;
@@ -105,20 +139,204 @@ void vui_console_put_char_at( vui_console *con, uint8_t c, uint16_t row, uint16_
 			vui_console_do_backspace( con );
 			break;
 		default:
-			if( con->current_col == con->num_cols + 1 ) {
-				vui_console_put_char( con, '\n' );
-			}
+			if( con->capturing_escape_code ) {
+				if( c == 'm' ) {
+					con->captured_escape[ con->capture_num ] = 0;
+					con->capturing_escape_code = false;
+					
+					int set_number = 0;
+					char set_1[4];
+					char set_2[4];
+					char set_3[4];
 
-			con->rows[row - 1].buff[col - 1] = c;
-			con->rows[row - 1].color[col - 1] = 0;
-			con->rows[row - 1].dirty = true;
+					memset( set_1, 0, 4 );
+					memset( set_2, 0, 4 );
+					memset( set_3, 0, 4 );
 
-			//*(con->buffer + (row*con->num_cols) + col) = c;
-			vui_draw_char_with_color( c, con->current_pixel_x, con->current_pixel_y, con->fg_color, con->bg_color, con->font, true );
-			//vui_refresh_rect( con->current_pixel_x, con->current_pixel_y, con->char_width, con->char_height );
+					int n = 0;
+					for( int i = 0; i < con->capture_num; i++ ) {
+						if( con->captured_escape[i] == '[' ) {
+							set_number = 1;
+						} else {
+							if( con->captured_escape[i] == ';' ) {
+								set_number++;
+								n = 0;
+							} else {
+								switch( set_number ) {
+									case 1:
+										set_1[n] = con->captured_escape[i];
+										n++;
+										break;
+									case 2:
+										set_2[n] = con->captured_escape[i];
+										n++;
+										break;
+									case 3:
+										set_3[n] = con->captured_escape[i];
+										n++;
+										break;
+								}
+							}
+						}
+					}
 
-			con->current_col++;
-			con->current_pixel_x = con->current_pixel_x + con->char_width;
+					int captured_fg = atoi(set_2);
+					int captured_bg = atoi(set_3);
+
+					//int captured_fg = ((con->captured_escape[3] - '0') * 10) + (con->captured_escape[4] - '0');
+					//int captured_bg = ((con->captured_escape[6] - '0') * 10) + (con->captured_escape[7] - '0');
+
+					uint32_t new_fg = 0;
+					uint32_t new_bg = 0;
+
+					switch( captured_fg ) {
+						case 30:
+							new_fg = CONSOLE_COLOR_RGB_BLACK;
+							break;
+						case 31:
+							new_fg = CONSOLE_COLOR_RGB_RED;
+							break;
+						case 32:
+							new_fg = CONSOLE_COLOR_RGB_GREEN;
+							break;
+						case 33:
+							new_fg = CONSOLE_COLOR_RGB_BROWN;
+							break;
+						case 34:
+							new_fg = CONSOLE_COLOR_RGB_BLUE;
+							break;
+						case 35:
+							new_fg = CONSOLE_COLOR_RGB_MAGENTA;
+							break;
+						case 36:
+							new_fg = CONSOLE_COLOR_RGB_CYAN;
+							break;
+						case 37:
+							new_fg = CONSOLE_COLOR_RGB_LIGHT_GREY;
+							break;
+						case 90:
+							new_fg = CONSOLE_COLOR_RGB_DARK_GREY;
+							break;
+						case 91:
+							new_fg = CONSOLE_COLOR_RGB_LIGHT_RED;
+							break;
+						case 92:
+							new_fg = CONSOLE_COLOR_RGB_LIGHT_GREEN;
+							break;
+						case 93:
+							new_fg = CONSOLE_COLOR_RGB_YELLOW;
+							break;
+						case 94:
+							new_fg = CONSOLE_COLOR_RGB_LIGHT_BLUE;
+							break;
+						case 95:
+							new_fg = CONSOLE_COLOR_RGB_LIGHT_MAGENTA;
+							break;
+						case 96:
+							new_fg = CONSOLE_COLOR_RGB_LIGHT_CYAN;
+							break;
+						case 97:
+							new_fg = CONSOLE_COLOR_RGB_WHITE;
+							break;
+						default:
+							new_fg = 0;
+					}
+
+					switch( captured_bg ) {
+						case 40:
+							new_bg = CONSOLE_COLOR_RGB_BLACK;
+							break;
+						case 41:
+							new_bg = CONSOLE_COLOR_RGB_RED;
+							break;
+						case 42:
+							new_bg = CONSOLE_COLOR_RGB_GREEN;
+							break;
+						case 43:
+							new_bg = CONSOLE_COLOR_RGB_BROWN;
+							break;
+						case 44:
+							new_bg = CONSOLE_COLOR_RGB_BLUE;
+							break;
+						case 45:
+							new_bg = CONSOLE_COLOR_RGB_MAGENTA;
+							break;
+						case 46:
+							new_bg = CONSOLE_COLOR_RGB_CYAN;
+							break;
+						case 47:
+							new_bg = CONSOLE_COLOR_RGB_WHITE;
+							break;
+						case 100:
+							new_fg = CONSOLE_COLOR_RGB_DARK_GREY;
+							break;
+						case 101:
+							new_fg = CONSOLE_COLOR_RGB_LIGHT_RED;
+							break;
+						case 102:
+							new_fg = CONSOLE_COLOR_RGB_LIGHT_GREEN;
+							break;
+						case 103:
+							new_fg = CONSOLE_COLOR_RGB_YELLOW;
+							break;
+						case 104:
+							new_fg = CONSOLE_COLOR_RGB_LIGHT_BLUE;
+							break;
+						case 105:
+							new_fg = CONSOLE_COLOR_RGB_LIGHT_MAGENTA;
+							break;
+						case 106:
+							new_fg = CONSOLE_COLOR_RGB_LIGHT_CYAN;
+							break;
+						case 107:
+							new_fg = CONSOLE_COLOR_RGB_WHITE;
+							break;
+						default:
+							new_bg = 0;
+					}
+
+					con->override_fg = new_fg;
+					con->override_bg = new_bg;
+
+					vdf( "Cap fg: %d    Cap bg: %d\n", captured_fg, captured_bg );
+					vdf( "Overrides fg: 0x%08X    bg: 0x%08X\n", new_fg, new_bg );
+
+					con->use_color_override_fg = new_fg == 0 ? false : true;
+					con->use_color_override_bg = new_bg == 0 ? false : true;
+
+					con->capture_num = 0;
+				} else {
+					//vdf( "added: %d -> %c\n", con->capture_num, c );
+					con->captured_escape[ con->capture_num ] = c;
+					con->capture_num++;
+				}
+			} else {
+				if( con->current_col == con->num_cols + 1 ) {
+					vui_console_put_char( con, '\n' );
+				}
+
+				uint32_t fg = con->use_color_override_fg ? con->override_fg : con->fg_color;
+				uint32_t bg = con->use_color_override_bg ? con->override_bg : con->bg_color;
+
+				con->rows[row - 1].buff[col - 1] = c;
+				con->rows[row - 1].color_fg[col - 1] = fg;
+				con->rows[row - 1].color_bg[col - 1] = bg;
+				con->rows[row - 1].color_set_fg[col - 1] = con->use_color_override_fg;;
+				con->rows[row - 1].color_set_bg[col - 1] = con->use_color_override_bg;
+				con->rows[row - 1].dirty = true;
+
+				//vdf( "fg: 0x%08X\n", fg );
+
+				if( con->rows[row - 1].color_set_bg[col - 1] != 0 ) {
+					//vui_draw_rect( con->current_pixel_x, con->current_pixel_y, con->char_width, con->char_height, bg );
+				}
+
+				vui_draw_char_with_color( c, con->current_pixel_x, con->current_pixel_y, fg, bg, con->font, true );
+				//vui_refresh_rect( con->current_pixel_x, con->current_pixel_y, con->char_width, con->char_height );
+
+				con->current_col++;
+				con->current_pixel_x = con->current_pixel_x + con->char_width;
+			}			
 	}
 
 	con->show_cursor = cursor_visibility;
@@ -160,7 +378,11 @@ void vui_console_put_string_at( vui_console *con, char *str, uint16_t row, uint1
 void vui_console_scroll_up( vui_console *con, bool set_current_row_col ) {
 	for(int i = 0; i < con->num_rows - 2; i++ ) {
 		memcpy( con->rows[i].buff, con->rows[i + 1].buff, sizeof(char) * con->num_cols );
-		memcpy( con->rows[i].color, con->rows[i + 1].color, sizeof(uint32_t) * con->num_cols );
+		memcpy( con->rows[i].color_fg, con->rows[i + 1].color_fg, sizeof(uint32_t) * con->num_cols );
+		memcpy( con->rows[i].color_bg, con->rows[i + 1].color_bg, sizeof(uint32_t) * con->num_cols );
+		memcpy( con->rows[i].color_set_fg, con->rows[i + 1].color_set_fg, sizeof(uint8_t) * con->num_cols );
+		memcpy( con->rows[i].color_set_bg, con->rows[i + 1].color_set_bg, sizeof(uint8_t) * con->num_cols );
+
 		con->rows[i].dirty = true;
 	}
 
@@ -271,13 +493,33 @@ void vui_console_blink_cursor( vui_console *con ) {
 	}
 }
 
-char long_string_for_test[] = "Versions VI Console Test\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25";
+char long_string_for_test[] = "\x1b[0;93;0mVersions VI\x1b[0;0;0m:\n";
 
 void vui_console_tests( vui_handle H ) {
 	vui_console *con = vui_get_handle_data(H);
 
-	//vui_console_put_string( con, "VUI Console test suite." );
+	vui_console_put_string( con, "VUI Console test suite. " );
 
 	vui_console_put_string( con, long_string_for_test );
+
+	vui_console_put_string( con, "\x1b[0;30;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;31;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;32;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;33;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;34;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;35;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;36;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;37;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;90;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;91;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;92;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;93;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;94;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;95;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;96;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;97;0mSo many escape code colors\n" );
+
+	
+
 	vui_console_draw_from_struct( con );
 }
