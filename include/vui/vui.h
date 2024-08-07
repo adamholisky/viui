@@ -56,6 +56,8 @@ typedef struct {
 	uint32_t window_title_bar_foreground;
 	uint32_t button_foreground;
 	uint32_t button_background;
+	uint32_t button_active;
+	uint32_t button_hover;
 } vui_theme;
 
 typedef struct {
@@ -74,7 +76,14 @@ typedef struct {
 } vui_core;
 
 typedef struct {
+	void (*default_on_mouse_down)(vui_event *);
+	void (*default_on_mouse_enter)(vui_event *);
+	void (*default_on_mouse_exit)(vui_event *);
+	void (*default_on_mouse_up)(vui_event *);
+
 	void (*on_mouse_down)(vui_event *);
+	void (*on_mouse_enter)(vui_event *);
+	void (*on_mouse_exit)(vui_event *);
 	void (*on_mouse_up)(vui_event *);
 } vui_operations;
 
@@ -113,6 +122,7 @@ uint16_t absolute_y;
 void vui_init( uint32_t *fb_addr, uint16_t width, uint16_t height );
 void vui_refresh( void );
 void vui_refresh_rect( uint16_t x, uint16_t y, uint16_t width, uint16_t height );
+void vui_refresh_handle( vui_handle H );
 
 /**************************************/
 /* Handle Management Functions                     */

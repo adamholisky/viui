@@ -1,5 +1,6 @@
 #include "vui/vui.h"
 #include "vui/button.h"
+#include "vui/event.h"
 
 vui_handle vui_button_create( char *text, uint16_t x, uint16_t y, uint16_t width, uint16_t height, vui_handle parent ) {
 	vdf( "Create Button: x: %d    y: %d    width: %d    height: %d\n", x, y, width, height );
@@ -35,6 +36,11 @@ vui_handle vui_button_create( char *text, uint16_t x, uint16_t y, uint16_t width
 	button->color_foreground = theme->button_foreground;
 	button->color_background = theme->button_background;
 
+	button->ops.default_on_mouse_down = vui_button_on_mouse_down;
+	button->ops.default_on_mouse_up = vui_button_on_mouse_up;
+	button->ops.default_on_mouse_enter = vui_button_on_mouse_enter;
+	button->ops.default_on_mouse_exit = vui_button_on_mouse_exit;
+
 	strcpy( button->text, text );
 
 	vdf( "    Inner Button: x: %d    y: %d    width: %d    height: %d\n", button->inner_x, button->inner_y, button->inner_width, button->inner_height );
@@ -51,14 +57,29 @@ void vui_button_draw( vui_handle H ) {
 void vui_button_draw_from_struct( vui_button *button ) {
 	vui_theme *theme = vui_get_active_theme();
 
+	uint32_t bg_color = button->color_background;
+
+	if( button->is_hover ) {
+		bg_color = theme->button_hover;
+
+		if( button->is_active ) {
+			bg_color = theme->button_active;
+		}
+	}
+
+	// TODO REMOVE WHEN MOVE MOVEMENT IMPLEMENTED
+	if( button->is_active ) {
+		bg_color = theme->button_active;
+	}
+
 	// Border
 	vui_draw_rect( button->x, button->y, button->width, button->height, theme->border );
 
 	// Inner window
-	vui_draw_rect( button->inner_x, button->inner_y, button->inner_width, button->inner_height, button->color_background );
+	vui_draw_rect( button->inner_x, button->inner_y, button->inner_width, button->inner_height, bg_color );
 
 	// Text
-	vui_draw_string( button->text, button->inner_x + 3, button->inner_y + 3, button->color_foreground, button->color_background, vui_font_get_font("Zap VGA"), true );
+	vui_draw_string( button->text, button->inner_x + 3, button->inner_y + 3, button->color_foreground, bg_color, vui_font_get_font("Zap VGA"), true );
 }
 
 /**
@@ -84,4 +105,46 @@ void vui_button_set_text( vui_handle H, char *text ) {
 	vui_button *b = vui_get_handle_data(H);
 
 	strncpy( b->text, text, VUI_BUTTON_TEXT_MAX );
+}
+
+void vui_button_on_mouse_enter( vui_event *e ) {
+	vui_button *b = vui_get_handle_data(e->H);
+
+	b->is_hover = true;
+
+	vui_button_draw_from_struct(b);
+}
+
+void vui_button_on_mouse_exit( vui_event *e ) {
+	vui_button *b = vui_get_handle_data(e->H);
+
+	b->is_hover = true;
+
+	vui_button_draw_from_struct(b);
+}
+
+void vui_button_on_mouse_down( vui_event *e ) {
+	vui_button *b = vui_get_handle_data(e->H);
+
+	b->is_active = true;
+
+	if( b->ops.on_mouse_down != NULL ) {
+		b->ops.on_mouse_down(e);
+	}
+
+	vui_button_draw_from_struct(b);
+	vui_refresh_handle(e->H);
+}
+
+void vui_button_on_mouse_up( vui_event *e ) {
+	vui_button *b = vui_get_handle_data(e->H);
+
+	b->is_active = false;
+
+	if( b->ops.on_mouse_up != NULL ) {
+		b->ops.on_mouse_up(e);
+	}
+
+	vui_button_draw_from_struct(b);
+	vui_refresh_handle(e->H);
 }

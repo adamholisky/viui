@@ -46,10 +46,10 @@ void vui_main_test_loop( void ) {
 	vui_window *win2_s = vui_get_handle_data(win2);
 
 	vui_handle btn1 = vui_button_create( "Test 1", win2_s->inner_x + 10, win2_s->inner_y + 10, 75, 30, win2 );
-	vui_set_event_hanlder( btn1, VUI_EVENT_MOUSE_UP, button1_on_mouse_up );
+	vui_set_event_handler( btn1, VUI_EVENT_MOUSE_UP, button1_on_mouse_up );
 
 	vui_handle btn2 = vui_button_create( "Test 2", win2_s->inner_x + 10, win2_s->inner_y + 10 + 55, 75, 30, win2 );
-	vui_set_event_hanlder( btn2, VUI_EVENT_MOUSE_UP, button2_on_mouse_up );
+	vui_set_event_handler( btn2, VUI_EVENT_MOUSE_UP, button2_on_mouse_up );
 
 	vui_draw( desktop );
 	vui_draw( win );

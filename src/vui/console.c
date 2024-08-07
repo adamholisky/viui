@@ -21,6 +21,7 @@ vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t 
 	vui_handle H = vui_allocate_handle( VUI_HANDLE_TYPE_CONSOLE );
 	vui_set_handle_data( H, con );
 
+	con->handle = H;
 	con->type = VUI_HANDLE_TYPE_CONSOLE;
 
 	con->pixel_x= x;
@@ -456,7 +457,7 @@ void vui_console_put_string( vui_console *con, char *str ) {
  * @param col 
  */
 void vui_console_put_string_at( vui_console *con, char *str, uint16_t row, uint16_t col ) {
-	vdf( "Starting put_string_at cur_row: %d   cur_col %d\n", con->current_row, con->current_col );
+	//vdf( "Starting put_string_at cur_row: %d   cur_col %d\n", con->current_row, con->current_col );
 
 	for( ; *str; *str++ ) {
 		vui_console_put_char_at( con, *str, con->current_row, con->current_col );

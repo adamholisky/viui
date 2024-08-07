@@ -17,10 +17,10 @@ extern "C" {
 #define VUI_EVENT_FLAG_CTRL		(1 << 3)
 #define VUI_EVENT_FLAG_ALT		(1 << 4)
 
-void vui_external_event_handler_click( uint16_t x, uint16_t y, bool lmb, bool rmb );
+void vui_external_event_handler( uint8_t event_type, uint16_t x, uint16_t y, bool lmb, bool rmb );
 vui_handle vui_find_handler_for_event( vui_handle_list *list, vui_event *e );
 void vui_send_event( vui_handle H, vui_event *e );
-void vui_set_event_hanlder( vui_handle H, uint8_t event_type, void (*handler)(vui_event *) );
+void vui_set_event_handler( vui_handle H, uint8_t event_type, void (*handler)(vui_event *) );
 bool vui_is_dispatcher( uint16_t type );
 
 

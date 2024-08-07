@@ -11,13 +11,13 @@ extern vui_core vui;
  * @param lmb 
  * @param rmb 
  */
-void vui_external_event_handler_click( uint16_t x, uint16_t y, bool lmb, bool rmb ) {
+void vui_external_event_handler( uint8_t event_type, uint16_t x, uint16_t y, bool lmb, bool rmb ) {
 	vui_event event;
 	memset( &event, 0, sizeof(event) );
 
 	event.x = x;
 	event.y = y;
-	event.type = VUI_EVENT_MOUSE_UP;
+	event.type = event_type;
 	event.flags = (lmb == true ? event.flags | VUI_EVENT_FLAG_LMB : event.flags);
 	event.flags = (rmb == true ? event.flags | VUI_EVENT_FLAG_RMB : event.flags);
 
@@ -32,6 +32,7 @@ void vui_external_event_handler_click( uint16_t x, uint16_t y, bool lmb, bool rm
 		vui_handle handler = vui_find_handler_for_event( &handler_st->children, &event );
 
 		if( handler != 0 ) {
+			event.H = handler;
 			vui_send_event( handler, &event );
 		}
 	}
@@ -88,9 +89,11 @@ void vui_send_event( vui_handle H, vui_event *e ) {
 	void (*handler_to_call)(vui_event *) = NULL;
 
 	switch( e->type ) {
+		case VUI_EVENT_MOUSE_DOWN:
+			handler_to_call = element->ops.default_on_mouse_down;
+			break;
 		case VUI_EVENT_MOUSE_UP:
-			//vdf( "calling on mouse up\n" );
-			handler_to_call = element->ops.on_mouse_up;
+			handler_to_call = element->ops.default_on_mouse_up;
 			break;
 	}
 
@@ -106,7 +109,7 @@ void vui_send_event( vui_handle H, vui_event *e ) {
  * @param event_type 
  * @param handler 
  */
-void vui_set_event_hanlder( vui_handle H, uint8_t event_type, void (*handler)(vui_event *) ) {
+void vui_set_event_handler( vui_handle H, uint8_t event_type, void (*handler)(vui_event *) ) {
 	vui_common *element = vui_get_handle_data(H);
 
 	if( element == NULL ) {
@@ -115,6 +118,9 @@ void vui_set_event_hanlder( vui_handle H, uint8_t event_type, void (*handler)(vu
 	}
 
 	switch( event_type ) {
+		case VUI_EVENT_MOUSE_DOWN:
+			element->ops.on_mouse_down = handler;
+			break;
 		case VUI_EVENT_MOUSE_UP:
 			element->ops.on_mouse_up = handler;
 			vdf( "set on mouse up\n" );

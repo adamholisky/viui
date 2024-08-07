@@ -69,6 +69,7 @@ void vit_gui_test( void ) {
 				case SDL_QUIT:
 					quit = true;
 					break;
+				case SDL_MOUSEBUTTONDOWN:
 				case SDL_MOUSEBUTTONUP:
 					int x, y;
 
@@ -78,9 +79,13 @@ void vit_gui_test( void ) {
 
 					bool lmb = (e.button.button == 1 ? true : false );
 					bool rmb = (e.button.button == 3 ? true : false );
-
-					vui_external_event_handler_click( x, y, lmb, rmb );
-
+					
+					if( e.type == SDL_MOUSEBUTTONDOWN ) {
+						vui_external_event_handler( VUI_EVENT_MOUSE_DOWN, x, y, lmb, rmb );
+					} else {
+						vui_external_event_handler( VUI_EVENT_MOUSE_UP, x, y, lmb, rmb );
+					}
+					
 					break;
 			}
 		}
