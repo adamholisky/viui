@@ -6,6 +6,7 @@ vui_handle vui_desktop_create( uint16_t x, uint16_t y, uint16_t width, uint16_t 
 	vui_handle H = vui_allocate_handle( VUI_HANDLE_TYPE_DESKTOP );
 
 	vui_desktop *desktop = vmalloc( sizeof(vui_desktop) );
+	memset( desktop, 0, sizeof(vui_desktop) );
 
 	desktop->handle = H;
 	desktop->flags = flags;

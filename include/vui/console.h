@@ -53,6 +53,8 @@ typedef struct {
 } console_row;
 
 typedef struct {
+	INSERT_VUI_COMMON
+
 	uint16_t pixel_x;
 	uint16_t pixel_y;
 	uint16_t pixel_width;
@@ -99,7 +101,7 @@ typedef struct {
 	console_row *rows;
 } vui_console;
 
-vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height );
+vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height, vui_handle parent );
 void vui_console_draw( vui_handle H );
 void vui_console_draw_from_struct( vui_console *con );
 void vui_console_tests( vui_handle H );

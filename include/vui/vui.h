@@ -58,11 +58,30 @@ typedef struct {
 
 typedef struct {
 	uint16_t type;
-	vui_handle id;
+	vui_handle handle;
 	vui_handle parent;
 	vui_handle_list children;
 	uint32_t priority;
+
+	uint16_t x;
+	uint16_t y;
+	uint16_t width;
+	uint16_t height;
+	uint16_t absolute_x;
+	uint16_t absolute_y;
 } vui_common;
+
+#define INSERT_VUI_COMMON uint16_t type; \
+vui_handle handle; \
+vui_handle parent; \
+vui_handle_list children; \
+uint32_t priority; \
+uint16_t x; \
+uint16_t y; \
+uint16_t width; \
+uint16_t height; \
+uint16_t absolute_x; \
+uint16_t absolute_y;
 
 /**************************************/
 /* Core Functions                     */
@@ -74,7 +93,9 @@ void vui_refresh_rect( uint16_t x, uint16_t y, uint16_t width, uint16_t height )
 vui_handle vui_allocate_handle( uint16_t type );
 void vui_set_handle_data( vui_handle H, void *data );
 void *vui_get_handle_data( vui_handle H);
+void vui_draw( vui_handle H );
 void vui_draw_handle( vui_handle H );
+void vui_add_to_parent( vui_handle parent, vui_handle child );
 
 vui_theme *vui_get_active_theme( void );
 

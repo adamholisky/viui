@@ -6,6 +6,7 @@ vui_handle vui_window_create( uint16_t x, uint16_t y, uint16_t width, uint16_t h
 
 	vui_theme *theme = vui_get_active_theme();
 	vui_window *window = vmalloc( sizeof(vui_window) );
+	memset( window, 0, sizeof(vui_window) );
 
 	vui_handle H = vui_allocate_handle( VUI_HANDLE_TYPE_WINDOW );
 	vui_set_handle_data( H, window );

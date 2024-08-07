@@ -2,7 +2,7 @@
 #include <vui/console.h>
 #include <vui/font.h>
 
-vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height ) {
+vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height, vui_handle parent ) {
 	vdf( "Create Console: x: %d    y: %d    width: %d    height: %d\n", x, y, width, height );
 
 	vui_theme *theme = vui_get_active_theme();
@@ -72,6 +72,7 @@ vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t 
 	con->use_color_override_fg = false;
 	memset( con->captured_escape, 0, 25 );
 
+	vui_add_to_parent( parent, H );
 	return H;
 }
 

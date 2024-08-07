@@ -26,28 +26,18 @@ void vui_main_test_loop( void ) {
 	vui_theme *theme = vui_get_active_theme();
 
 	vui_handle desktop = vui_desktop_create( 0, 0, vui.width, vui.height, VUI_DESKTOP_FLAG_NONE );
-	vui_draw_handle( desktop );
+	vui_handle smooth_text = vui_label_create( 5, 768 - 25, "Adam Holisky Versions OS 6.0.0.1", VUI_LABEL_FLAG_NONE, desktop );
 
-	/* vui_handle smooth_text = vui_label_create( 30, 100, "Adam Holisky Versions OS 6.0.0.1", VUI_LABEL_FLAG_NONE );
+	vui_label_set_color( smooth_text, COLOR_RGB_WHITE, theme->window_background );
 
-	vui_handle not_smooth_text = vui_label_create( 30, 130, "ABCDEFGHIJKLMNOPQRSTUVWXYZ `1234567890-= ~!@#$%^&*()_+ \"\'/\\.,<>[]{}", VUI_LABEL_FLAG_NO_SMOOTHING );
-
-	vui_label_set_color( smooth_text, COLOR_RGB_BLACK, theme->window_background );
-	vui_label_set_color( not_smooth_text, COLOR_RGB_BLACK, theme->window_background );
-
-	vui_label_set_font( not_smooth_text, vui_font_get_font("Zap VGA") ); */
 
 	vui_handle win = vui_window_create( 25, 25, 800, 400, VUI_WINDOW_FLAG_NONE );
 	vui_window_set_title( win, "ViOS 6" );
-
 	vui_window *win_s = vui_get_handle_data(win);
+	vui_handle con = vui_console_create( win_s->inner_x, win_s->inner_y, win_s->inner_width, win_s->inner_height, win );
 
-	vui_handle con = vui_console_create( win_s->inner_x, win_s->inner_y, win_s->inner_width, win_s->inner_height );
-
+	vui_draw( desktop );
 	vui_draw_handle( win );
-	vui_draw_handle( con );
-	/* vui_draw_handle( smooth_text );
-	vui_draw_handle( not_smooth_text ); */
 
 	vui_console_tests( con );
 }
@@ -65,7 +55,7 @@ void vui_init( uint32_t *fb_addr, uint16_t width, uint16_t height ) {
 	vui.height = height;
 	vui.pitch = width * 4;
 	vui.buffer = vmalloc( 4 * width * height );
-	vui.handle_next = 0;
+	vui.handle_next = 1;
 
 	memset( vui.buffer, 0, 4 * width * height );
 
@@ -103,6 +93,88 @@ vui_handle vui_allocate_handle( uint16_t type ) {
  */
 void vui_set_handle_data( vui_handle H, void *data ) {
 	vui.handles[H].data = data;
+}
+
+/**
+ * @brief Draws the given handle and all its children
+ * 
+ * @param H vui_handle of the element to draw
+ */
+void vui_draw( vui_handle H ) {
+	// Step 1: Draw the container
+	vui_draw_handle(H);
+
+	// Step 2: Iterate through children, draw each
+	vui_common *parent_st = vui_get_handle_data(H);
+
+	if( parent_st == NULL ) {
+		vdf( "Parent struct is null. Aborting.\n" );
+		return;
+	}
+
+	vui_handle_list *top = &parent_st->children;
+
+	do {
+		if( top->H != 0 ) {
+			vui_draw_handle( top->H );
+		}
+		
+		top = top->next;
+	} while( top != NULL );
+}
+
+void vui_add_to_parent( vui_handle parent, vui_handle child ) {
+	// Step 1: Get the data structs as vui_common
+	vui_common *parent_st = vui_get_handle_data(parent);
+	vui_common *child_st = vui_get_handle_data(child);
+
+	if( parent_st == NULL ) {
+		vdf( "Parent_st is NULL. Aborting.\n" );
+		return;
+	}
+
+	if( child_st == NULL ) {
+		vdf( "Child_st is NULL. Aborting.\n" );
+		return;
+	}
+
+	// Step 2: Find the end of the list, add to it
+	vui_handle_list *top = &parent_st->children;
+	vui_handle_list *node = NULL;
+	bool free_child_node_found = false;
+
+	if( top == NULL ) {
+		vdf( "Top is NULL. Aborting.\n" );
+		return;
+	}
+
+	do {
+		if( top->next == NULL ) {
+			if( top->H == 0 ) {
+				node = top;
+			} else {
+				top->next = vmalloc( sizeof(vui_handle_list) );
+				node = top->next;
+			}
+
+			free_child_node_found = true;
+		} else {
+			top = top->next;
+		}
+	} while( top != NULL && !free_child_node_found );
+
+	if( node == NULL ) {
+		vdf( "Child node returned as null. Aborting.\n" );
+		return;
+	}
+
+	// Step 3: Configure the handles for child and parent
+	node->H = child_st->handle;
+	node->next = NULL;
+	child_st->parent = parent_st->handle;
+
+	// Step 4: Sort parent's child handles by priority order
+	// TODO ^^
 }
 
 /**
