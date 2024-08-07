@@ -506,7 +506,7 @@ void vui_console_tests( vui_handle H ) {
 
 	vui_console_put_string( con, long_string_for_test );
 
-	vui_console_put_string( con, "\x1b[0;30;0mSo many escape code colors\n" );
+	/* vui_console_put_string( con, "\x1b[0;30;0mSo many escape code colors\n" );
 	vui_console_put_string( con, "\x1b[0;31;0mSo many escape code colors\n" );
 	vui_console_put_string( con, "\x1b[0;32;0mSo many escape code colors\n" );
 	vui_console_put_string( con, "\x1b[0;33;0mSo many escape code colors\n" );
@@ -521,7 +521,7 @@ void vui_console_tests( vui_handle H ) {
 	vui_console_put_string( con, "\x1b[0;94;0mSo many escape code colors\n" );
 	vui_console_put_string( con, "\x1b[0;95;0mSo many escape code colors\n" );
 	vui_console_put_string( con, "\x1b[0;96;0mSo many escape code colors\n" );
-	vui_console_put_string( con, "\x1b[0;97;0mSo many escape code colors\n" );
+	vui_console_put_string( con, "\x1b[0;97;0mSo many escape code colors\n" ); */
 
 	
 

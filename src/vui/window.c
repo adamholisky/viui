@@ -18,7 +18,9 @@ vui_handle vui_window_create( uint16_t x, uint16_t y, uint16_t width, uint16_t h
 	window->width = width;
 	window->height = height;
 	window->x = x;
+	window->absolute_x = x;
 	window->y = y;
+	window->absolute_y = y;
 
 	window->inner_width = width;
 	window->inner_height = height;

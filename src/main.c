@@ -1,4 +1,5 @@
 #include "vit.h"
+#include "vui_test.h"
 #include <SDL.h>
 #include <SDL_render.h>
 
@@ -55,6 +56,8 @@ void vit_gui_test( void ) {
 	// Enter VUI's GUI
 	vui_init( fb, SCREEN_WIDTH, SCREEN_HEIGHT );
 
+	vui_main_test_loop();
+
 	// Main SDL loop
 	SDL_Event e; 
 	bool quit = false; 
@@ -70,7 +73,12 @@ void vit_gui_test( void ) {
 
 					SDL_GetMouseState( &x, &y );
 
-					vui_external_event_handler_click( x, y, true, false );
+					//vdf( "mb: %d\n", e.button.button );
+
+					bool lmb = (e.button.button == 1 ? true : false );
+					bool rmb = (e.button.button == 3 ? true : false );
+
+					vui_external_event_handler_click( x, y, lmb, rmb );
 
 					break;
 			}

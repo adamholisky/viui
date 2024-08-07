@@ -5,42 +5,9 @@
 #include "vui/window.h"
 #include "vui/label.h"
 #include "vui/console.h"
+#include "vui/button.h"
 
 vui_core vui;
-
-/**
- * @brief Test main loop for VUI development. Works on dev and OS.
- * 
- */
-void vui_main_test_loop( void ) {
-	vui_font_initalize();
-
-	#ifdef VI_ENV_OS
-	vui_font_load( VUI_FONT_TYPE_PSF, "Zap Light", "/usr/share/fonts/zap-light20.psf" );
-	vui_font_load( VUI_FONT_TYPE_PSF, "Zap VGA", "/usr/share/fonts/zap-ext-vga16.psf" );
-	#else
-	vui_font_load( VUI_FONT_TYPE_PSF, "Zap Light", "zap-light20.psf" );
-	vui_font_load( VUI_FONT_TYPE_PSF, "Zap VGA", "zap-ext-vga16.psf" );
-	#endif
-
-	vui_theme *theme = vui_get_active_theme();
-
-	vui_handle desktop = vui_desktop_create( 0, 0, vui.width, vui.height, VUI_DESKTOP_FLAG_NONE );
-	vui_handle smooth_text = vui_label_create( 5, 768 - 25, "Adam Holisky Versions OS 6.0.0.1", VUI_LABEL_FLAG_NONE, desktop );
-
-	vui_label_set_color( smooth_text, COLOR_RGB_WHITE, theme->window_background );
-
-
-	vui_handle win = vui_window_create( 25, 25, 800, 400, VUI_WINDOW_FLAG_NONE );
-	vui_window_set_title( win, "ViOS 6" );
-	vui_window *win_s = vui_get_handle_data(win);
-	vui_handle con = vui_console_create( win_s->inner_x, win_s->inner_y, win_s->inner_width, win_s->inner_height, win );
-
-	vui_draw( desktop );
-	vui_draw_handle( win );
-
-	vui_console_tests( con );
-}
 
 /**
  * @brief Initalize the VUI GUI system
@@ -64,12 +31,16 @@ void vui_init( uint32_t *fb_addr, uint16_t width, uint16_t height ) {
 	vui.active_theme.window_background = 0x00D6D6D6;
 	vui.active_theme.window_title_bar_background = 0x00363636;
 	vui.active_theme.window_title_bar_foreground = 0x00EAEAEA;
-
-	#ifndef VI_ENV_OS
-	vui_main_test_loop();
-	#endif
+	vui.active_theme.button_foreground = COLOR_RGB_BLACK;
+	vui.active_theme.button_background = COLOR_RGB_WHITE;
 }
 
+/**
+ * @brief 
+ * 
+ * @param type 
+ * @return vui_handle 
+ */
 vui_handle vui_allocate_handle( uint16_t type ) {
 	if( vui.handle_next >= VUI_HANDLES_MAX ) {
 		vdf( "VUI: Reached max handles!\n" );
@@ -90,6 +61,13 @@ vui_handle vui_allocate_handle( uint16_t type ) {
 	return vui.handle_next - 1;
 }
 
+/**
+ * @brief 
+ * 
+ * @param type 
+ * @return true 
+ * @return false 
+ */
 bool vui_is_dispatcher( uint16_t type ) {
 	switch( type ) {
 		case VUI_HANDLE_TYPE_DESKTOP:
@@ -101,6 +79,11 @@ bool vui_is_dispatcher( uint16_t type ) {
 	return false;
 }
 
+/**
+ * @brief 
+ * 
+ * @param H 
+ */
 void vui_create_cleanup( vui_handle H ) {
 	vui_common *vc = vui_get_handle_data(H);
 
@@ -114,6 +97,12 @@ void vui_create_cleanup( vui_handle H ) {
 	}
 }
 
+/**
+ * @brief 
+ * 
+ * @param H 
+ * @return uint16_t 
+ */
 uint16_t vui_get_type_from_master_list( vui_handle H ) {
 	return vui.handles[H].type;
 }
@@ -305,6 +294,9 @@ void vui_draw_handle( vui_handle H ) {
 		case VUI_HANDLE_TYPE_CONSOLE:
 			vui_console_draw_from_struct( vui.handles[H].data );
 			break;
+		case VUI_HANDLE_TYPE_BUTTON:
+			vui_button_draw_from_struct( vui.handles[H].data );
+			break;
 		default:
 			vdf( "VUI: Cannot find handle type to draw.\n" );
 	}
@@ -322,36 +314,71 @@ void *vui_get_handle_data( vui_handle H) {
 	return vui.handles[H].data;
 }
 
+/**
+ * @brief 
+ * 
+ * @return vui_theme* 
+ */
 vui_theme *vui_get_active_theme( void ) {
 	return &vui.active_theme;
 }
 
+/**
+ * @brief 
+ * 
+ * @param x 
+ * @param y 
+ * @param lmb 
+ * @param rmb 
+ */
 void vui_external_event_handler_click( uint16_t x, uint16_t y, bool lmb, bool rmb ) {
 	vui_event event;
 	memset( &event, 0, sizeof(event) );
 
 	event.x = x;
 	event.y = y;
-	event.flags = lmb ? event.flags & VUI_EVENT_FLAG_LMB : event.flags;
-	event.flags = rmb ? event.flags & VUI_EVENT_FLAG_RMB : event.flags;
+	event.type = VUI_EVENT_MOUSE_UP;
+	event.flags = (lmb == true ? event.flags | VUI_EVENT_FLAG_LMB : event.flags);
+	event.flags = (rmb == true ? event.flags | VUI_EVENT_FLAG_RMB : event.flags);
 
 	// Step 1: check if it's in the active dispatcher (window, alert, etc...)
 
 	// Step 2: If not, search all dispatchers
 	vui_handle_list *top = &vui.dispatchers;
+	vui_handle dispatcher = vui_find_handler_for_event( &vui.dispatchers, &event );
+
+	if( dispatcher != 0 ) {
+		vui_common *handler_st = vui_get_handle_data(dispatcher);
+		vui_handle handler = vui_find_handler_for_event( &handler_st->children, &event );
+
+		if( handler != 0 ) {
+			vui_send_event( handler, &event );
+		}
+	}
+}
+
+/**
+ * @brief 
+ * 
+ * @param list 
+ * @param e 
+ * @return vui_handle 
+ */
+vui_handle vui_find_handler_for_event( vui_handle_list *list, vui_event *e ) {
+	vui_handle_list *top = list;
 	bool found_dispatcher = false;
 	vui_common *element;
 
 	do {
 		if( top->H == 0 ) {
 			// End of list reached, just return, we're not finding anything to send to
-			return;
+			return 0;
 		}
 
 		element = vui_get_handle_data(top->H);
 
-		if( (x >= element->absolute_x) && (x <= element->absolute_x + element->width) ) {
-			if( (y >= element->absolute_y) && (y <= element->absolute_y + element->height) ) {
+		if( (e->x >= element->absolute_x) && (e->x <= element->absolute_x + element->width) ) {
+			if( (e->y >= element->absolute_y) && (e->y <= element->absolute_y + element->height) ) {
 				found_dispatcher = true;
 			}
 		}
@@ -360,13 +387,59 @@ void vui_external_event_handler_click( uint16_t x, uint16_t y, bool lmb, bool rm
 	} while( top != NULL && !found_dispatcher );
 
 	if( found_dispatcher ) {
-		vdf( "Found dispatcher:  H = %d    Type: %d\n", element->handle, element->type );
-		vui_send_click_event( element->handle, &event );
+		//vdf( "Found handler:  H = %d    Type: %d\n", element->handle, element->type );
+		return element->handle;
+	}
+
+	return 0;
+}
+
+/**
+ * @brief 
+ * 
+ * @param H 
+ * @param e 
+ */
+void vui_send_event( vui_handle H, vui_event *e ) {
+	//vdf( "Handler got event. H = %d    e.flags = %d    e.type = %d\n", H, e->flags, e->type );
+
+	vui_common *element = vui_get_handle_data(H);
+
+	void (*handler_to_call)(vui_event *) = NULL;
+
+	switch( e->type ) {
+		case VUI_EVENT_MOUSE_UP:
+			//vdf( "calling on mouse up\n" );
+			handler_to_call = element->ops.on_mouse_up;
+			break;
+	}
+
+	if( handler_to_call != NULL ) {
+		handler_to_call(e);
 	}
 }
 
-void vui_send_click_event( vui_handle H, vui_event *e ) {
+/**
+ * @brief 
+ * 
+ * @param H 
+ * @param event_type 
+ * @param handler 
+ */
+void vui_set_event_hanlder( vui_handle H, uint8_t event_type, void (*handler)(vui_event *) ) {
+	vui_common *element = vui_get_handle_data(H);
 
+	if( element == NULL ) {
+		vdf( "Element was NULL in set_event_handler. Aborting.\n" );
+		return;
+	}
+
+	switch( event_type ) {
+		case VUI_EVENT_MOUSE_UP:
+			element->ops.on_mouse_up = handler;
+			vdf( "set on mouse up\n" );
+			break;
+	}
 }
 
 
@@ -553,6 +626,17 @@ void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32
 	}
 }
 
+/**
+ * @brief 
+ * 
+ * @param s 
+ * @param x 
+ * @param y 
+ * @param fg 
+ * @param bg 
+ * @param font 
+ * @param smoothing 
+ */
 void vui_draw_string( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, bool smoothing ) {
 	int len = strlen(s);
 	int current_x = x;
@@ -567,6 +651,18 @@ void vui_draw_string( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg,
 	}
 }
 
+/**
+ * @brief 
+ * 
+ * @param dest_x 
+ * @param dest_y 
+ * @param dest_w 
+ * @param dest_h 
+ * @param src_x 
+ * @param src_y 
+ * @param src_w 
+ * @param src_h 
+ */
 void vui_move_rect( uint32_t dest_x, uint32_t dest_y, uint32_t dest_w, uint32_t dest_h, uint32_t src_x, uint32_t src_y, uint32_t src_w, uint32_t src_h ) {
 	unsigned int i = 0;
 	uint8_t * mem_dest;

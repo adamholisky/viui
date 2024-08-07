@@ -21,6 +21,11 @@ extern "C" {
 #define VUI_HANDLE_TYPE_DESKTOP 4
 #define VUI_HANDLE_TYPE_CONSOLE 5
 
+#define VUI_EVENT_MOUSE_DOWN 1
+#define VUI_EVENT_MOUSE_UP 2
+#define VUI_EVENT_KEY_DOWN 3
+#define VUI_EVENT_KEY_UP 4
+
 #define VUI_EVENT_FLAG_LMB		(1 << 0)
 #define VUI_EVENT_FLAG_RMB		(1 << 1)
 #define VUI_EVENT_FLAG_SHIFT	(1 << 2)
@@ -42,6 +47,8 @@ typedef struct {
 } vui_handle_list;
 
 typedef struct {
+	vui_handle H;
+	uint8_t type;
 	uint32_t flags;
 
 	// Keyboard
@@ -58,6 +65,8 @@ typedef struct {
 	uint32_t window_background;
 	uint32_t window_title_bar_background;
 	uint32_t window_title_bar_foreground;
+	uint32_t button_foreground;
+	uint32_t button_background;
 } vui_theme;
 
 typedef struct {
@@ -76,11 +85,17 @@ typedef struct {
 } vui_core;
 
 typedef struct {
+	void (*on_mouse_down)(vui_event *);
+	void (*on_mouse_up)(vui_event *);
+} vui_operations;
+
+typedef struct {
 	uint16_t type;
 	vui_handle handle;
 	vui_handle parent;
 	vui_handle_list children;
 	uint32_t priority;
+	vui_operations ops;
 
 	uint16_t x;
 	uint16_t y;
@@ -95,6 +110,7 @@ vui_handle handle; \
 vui_handle parent; \
 vui_handle_list children; \
 uint32_t priority; \
+vui_operations ops; \
 uint16_t x; \
 uint16_t y; \
 uint16_t width; \
@@ -124,12 +140,9 @@ uint16_t vui_get_type_from_master_list( vui_handle H );
 vui_theme *vui_get_active_theme( void );
 
 void vui_external_event_handler_click( uint16_t x, uint16_t y, bool lmb, bool rmb );
-void vui_send_click_event( vui_handle H, vui_event *e );
-
-/**************************************/
-/* Test Functions                     */
-/**************************************/
-void vui_main_test_loop( void );
+vui_handle vui_find_handler_for_event( vui_handle_list *list, vui_event *e );
+void vui_send_event( vui_handle H, vui_event *e );
+void vui_set_event_hanlder( vui_handle H, uint8_t event_type, void (*handler)(vui_event *) );
 
 /**************************************/
 /* Drawing Primatives                 */
