@@ -8,8 +8,10 @@ vui_handle vui_desktop_create( uint16_t x, uint16_t y, uint16_t width, uint16_t 
 	vui_desktop *desktop = vmalloc( sizeof(vui_desktop) );
 	memset( desktop, 0, sizeof(vui_desktop) );
 
+	desktop->type = VUI_HANDLE_TYPE_DESKTOP;
 	desktop->handle = H;
 	desktop->flags = flags;
+	desktop->priority = 0xFFFFFFFF;	// Desktop gets the lowest priority in the event chain
 
 	desktop->x = x;
 	desktop->y = y;
@@ -20,6 +22,7 @@ vui_handle vui_desktop_create( uint16_t x, uint16_t y, uint16_t width, uint16_t 
 
 	vui_set_handle_data( H, desktop );
 
+	vui_create_cleanup(H);
 	return H;
 }
 

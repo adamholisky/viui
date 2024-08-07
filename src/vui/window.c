@@ -11,6 +11,8 @@ vui_handle vui_window_create( uint16_t x, uint16_t y, uint16_t width, uint16_t h
 	vui_handle H = vui_allocate_handle( VUI_HANDLE_TYPE_WINDOW );
 	vui_set_handle_data( H, window );
 
+	window->handle = H;
+	window->type = VUI_HANDLE_TYPE_WINDOW;
 	window->flags = flags;
 
 	window->width = width;
@@ -42,6 +44,7 @@ vui_handle vui_window_create( uint16_t x, uint16_t y, uint16_t width, uint16_t h
 	vdf( "    Final Window: x: %d    y: %d    width: %d    height: %d\n", window->x, window->y, window->width, window->height );
 	vdf( "    Inner Window: x: %d    y: %d    width: %d    height: %d\n", window->inner_x, window->inner_y, window->inner_width, window->inner_height );
 
+	vui_create_cleanup(H);
 	return H;
 }
 

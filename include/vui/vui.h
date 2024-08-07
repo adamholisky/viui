@@ -21,6 +21,12 @@ extern "C" {
 #define VUI_HANDLE_TYPE_DESKTOP 4
 #define VUI_HANDLE_TYPE_CONSOLE 5
 
+#define VUI_EVENT_FLAG_LMB		(1 << 0)
+#define VUI_EVENT_FLAG_RMB		(1 << 1)
+#define VUI_EVENT_FLAG_SHIFT	(1 << 2)
+#define VUI_EVENT_FLAG_CTRL		(1 << 3)
+#define VUI_EVENT_FLAG_ALT		(1 << 4)
+
 typedef uint32_t vui_handle;
 
 typedef struct {
@@ -34,6 +40,17 @@ typedef struct {
 
 	void *next;
 } vui_handle_list;
+
+typedef struct {
+	uint32_t flags;
+
+	// Keyboard
+	char key;
+
+	// Mouse
+	uint16_t x;
+	uint16_t y;
+} vui_event;
 
 typedef struct {
 	uint32_t desktop;
@@ -53,6 +70,8 @@ typedef struct {
 	vui_theme active_theme;
 
 	vui_handles handles[VUI_HANDLES_MAX];
+
+	vui_handle_list dispatchers;
 	vui_handle handle_next;
 } vui_core;
 
@@ -95,10 +114,17 @@ void vui_set_handle_data( vui_handle H, void *data );
 void *vui_get_handle_data( vui_handle H);
 void vui_draw( vui_handle H );
 void vui_draw_handle( vui_handle H );
+bool vui_handle_list_add( vui_handle_list *list, vui_handle handle_to_add );
 void vui_add_to_parent( vui_handle parent, vui_handle child );
+void vui_sort_list_by_priority( vui_handle_list *list );
+void vui_create_cleanup( vui_handle H );
+bool vui_is_dispatcher( uint16_t type );
+uint16_t vui_get_type_from_master_list( vui_handle H );
 
 vui_theme *vui_get_active_theme( void );
 
+void vui_external_event_handler_click( uint16_t x, uint16_t y, bool lmb, bool rmb );
+void vui_send_click_event( vui_handle H, vui_event *e );
 
 /**************************************/
 /* Test Functions                     */

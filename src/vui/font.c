@@ -99,7 +99,7 @@ vui_font *vui_font_get_main_font( void ) {
  * @return true Font was loaded successfully
  * @return false Font failed to load
  */
-#define KDEBUG_FONT_LOAD_PSF
+#undef KDEBUG_FONT_LOAD_PSF
 bool vui_font_load_psf( vui_font *font ) {
 
 	#ifdef VI_ENV_OS

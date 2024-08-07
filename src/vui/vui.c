@@ -80,9 +80,42 @@ vui_handle vui_allocate_handle( uint16_t type ) {
 	vui.handles[vui.handle_next].type = type;
 	vui.handles[vui.handle_next].H = vui.handle_next;
 
+	// If the handle that's being added is a dispatcher, then add it to the list
+	if( vui_is_dispatcher(type) ) {	
+		vui_handle_list_add( &vui.dispatchers, vui.handle_next );
+	}
+
 	vui.handle_next++;
 
 	return vui.handle_next - 1;
+}
+
+bool vui_is_dispatcher( uint16_t type ) {
+	switch( type ) {
+		case VUI_HANDLE_TYPE_DESKTOP:
+		case VUI_HANDLE_TYPE_WINDOW:
+			return true;
+			break;
+	}
+
+	return false;
+}
+
+void vui_create_cleanup( vui_handle H ) {
+	vui_common *vc = vui_get_handle_data(H);
+
+	if( vc == NULL ) {
+		vdf( "vui_common is NULL. Big problem. Aborting.\n" );
+		return;
+	}
+
+	if( vui_is_dispatcher(vc->type) ) {
+		vui_sort_list_by_priority( &vui.dispatchers );
+	}
+}
+
+uint16_t vui_get_type_from_master_list( vui_handle H ) {
+	return vui.handles[H].type;
 }
 
 /**
@@ -123,6 +156,54 @@ void vui_draw( vui_handle H ) {
 	} while( top != NULL );
 }
 
+/**
+ * @brief Adds the given handle to the provided handle list
+ * 
+ * @param list Pointer to the list to add to
+ * @param handle_to_add Handle to add 
+ */
+bool vui_handle_list_add( vui_handle_list *list, vui_handle handle_to_add ) {
+	vui_handle_list *top = list;
+	vui_handle_list *node = NULL;
+	bool free_node_found = false;
+
+	if( top == NULL ) {
+		vdf( "Top is NULL. Aborting.\n" );
+		return false;
+	}
+
+	do {
+		if( top->next == NULL ) {
+			if( top->H == 0 ) {
+				node = top;
+			} else {
+				top->next = vmalloc( sizeof(vui_handle_list) );
+				node = top->next;
+			}
+
+			free_node_found = true;
+		} else {
+			top = top->next;
+		}
+	} while( top != NULL && !free_node_found );
+
+	if( node == NULL ) {
+		vdf( "Free node returned as null. Aborting.\n" );
+		return false;
+	}
+
+	node->H = handle_to_add;
+	node->next = NULL;
+
+	return true;
+}
+
+/**
+ * @brief Adds the child handle to the parent
+ * 
+ * @param parent 
+ * @param child 
+ */
 void vui_add_to_parent( vui_handle parent, vui_handle child ) {
 	// Step 1: Get the data structs as vui_common
 	vui_common *parent_st = vui_get_handle_data(parent);
@@ -140,41 +221,69 @@ void vui_add_to_parent( vui_handle parent, vui_handle child ) {
 
 	// Step 2: Find the end of the list, add to it
 	vui_handle_list *top = &parent_st->children;
-	vui_handle_list *node = NULL;
-	bool free_child_node_found = false;
-
-	if( top == NULL ) {
-		vdf( "Top is NULL. Aborting.\n" );
-		return;
-	}
-
-	do {
-		if( top->next == NULL ) {
-			if( top->H == 0 ) {
-				node = top;
-			} else {
-				top->next = vmalloc( sizeof(vui_handle_list) );
-				node = top->next;
-			}
-
-			free_child_node_found = true;
-		} else {
-			top = top->next;
-		}
-	} while( top != NULL && !free_child_node_found );
-
-	if( node == NULL ) {
-		vdf( "Child node returned as null. Aborting.\n" );
-		return;
-	}
-
-	// Step 3: Configure the handles for child and parent
-	node->H = child_st->handle;
-	node->next = NULL;
+	vui_handle_list_add( &parent_st->children, child_st->handle );
 	child_st->parent = parent_st->handle;
 
 	// Step 4: Sort parent's child handles by priority order
 	// TODO ^^
+}
+
+/**
+ * @brief Sorts the provided list by priority
+ * 
+ * @param list 
+ */
+void vui_sort_list_by_priority( vui_handle_list *list ) {
+	bool keep_going = true;
+	bool did_sort = false;
+
+	vdf( "Priority List Pre Sort:\n" );
+	for( vui_handle_list *hl = list; hl != NULL; hl = hl->next ) {
+		vui_common *vc = vui_get_handle_data(hl->H);
+		vdf( "   %d -> %08X\n", hl->H, vc->priority );
+	}
+
+	if( list->H == 0 ) {
+		return;
+	}
+
+	if( list->next == NULL ) {
+		return;
+	}
+
+	do {
+		vui_handle_list *top = list;
+		vui_handle_list *current = list->next;
+		keep_going = true;
+		did_sort = false;
+
+		while( keep_going ) {
+			vui_common *top_st = vui_get_handle_data(top->H);
+			vui_common *current_st = vui_get_handle_data(current->H);
+			vui_handle temp = 0;
+
+			if( current_st->priority < top_st->priority ) {
+				temp = top->H;
+				top->H = current->H;
+				current->H = temp;
+
+				did_sort = true;
+			}
+
+			if( current->next == NULL ) {
+				keep_going = false;
+			} else {
+				top = current;
+				current = top->next;
+			}
+		}
+	} while( did_sort );
+
+	vdf( "Priority List Post Sort:\n" );
+	for( vui_handle_list *hl = list; hl != NULL; hl = hl->next ) {
+		vui_common *vc = vui_get_handle_data(hl->H);
+		vdf( "   %d -> %08X\n", hl->H, vc->priority );
+	}
 }
 
 /**
@@ -215,6 +324,49 @@ void *vui_get_handle_data( vui_handle H) {
 
 vui_theme *vui_get_active_theme( void ) {
 	return &vui.active_theme;
+}
+
+void vui_external_event_handler_click( uint16_t x, uint16_t y, bool lmb, bool rmb ) {
+	vui_event event;
+	memset( &event, 0, sizeof(event) );
+
+	event.x = x;
+	event.y = y;
+	event.flags = lmb ? event.flags & VUI_EVENT_FLAG_LMB : event.flags;
+	event.flags = rmb ? event.flags & VUI_EVENT_FLAG_RMB : event.flags;
+
+	// Step 1: check if it's in the active dispatcher (window, alert, etc...)
+
+	// Step 2: If not, search all dispatchers
+	vui_handle_list *top = &vui.dispatchers;
+	bool found_dispatcher = false;
+	vui_common *element;
+
+	do {
+		if( top->H == 0 ) {
+			// End of list reached, just return, we're not finding anything to send to
+			return;
+		}
+
+		element = vui_get_handle_data(top->H);
+
+		if( (x >= element->absolute_x) && (x <= element->absolute_x + element->width) ) {
+			if( (y >= element->absolute_y) && (y <= element->absolute_y + element->height) ) {
+				found_dispatcher = true;
+			}
+		}
+
+		top = top->next;
+	} while( top != NULL && !found_dispatcher );
+
+	if( found_dispatcher ) {
+		vdf( "Found dispatcher:  H = %d    Type: %d\n", element->handle, element->type );
+		vui_send_click_event( element->handle, &event );
+	}
+}
+
+void vui_send_click_event( vui_handle H, vui_event *e ) {
+
 }
 
 
@@ -406,7 +558,7 @@ void vui_draw_string( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg,
 	int current_x = x;
 	vui_font *f = ( font == NULL ? vui_font_get_main_font() : font );
 
-	vdf( "Smoothing: %d\n", smoothing );
+	//vdf( "Smoothing: %d\n", smoothing );
 
 	for( int i = 0; i < len; i++ ) {
 		vui_draw_char_with_color( *s, current_x, y, fg, bg, f, smoothing );

@@ -11,6 +11,8 @@ vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t 
 	vui_handle H = vui_allocate_handle( VUI_HANDLE_TYPE_CONSOLE );
 	vui_set_handle_data( H, con );
 
+	con->type = VUI_HANDLE_TYPE_CONSOLE;
+
 	con->pixel_x= x;
 	con->pixel_y = y;
 	con->pixel_width = width;
@@ -73,6 +75,7 @@ vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t 
 	memset( con->captured_escape, 0, 25 );
 
 	vui_add_to_parent( parent, H );
+	vui_create_cleanup(H);
 	return H;
 }
 
@@ -94,7 +97,7 @@ void vui_console_draw_from_struct( vui_console *con ) {
 				uint32_t fg = con->rows[i].color_set_fg[j] != 0 ? con->rows[i].color_fg[j] : con->fg_color;
 				uint32_t bg = con->rows[i].color_set_bg[j] != 0 ? con->rows[i].color_bg[j] : con->bg_color;
 
-				vdf( "draw fg: %08X\n", fg );
+				//vdf( "draw fg: %08X\n", fg );
 
 				if( con->rows[i].color_set_bg[j] != 0 ) {
 					//vui_draw_rect( x, y, con->char_width, con->char_height, bg );
@@ -299,8 +302,8 @@ void vui_console_put_char_at( vui_console *con, uint8_t c, uint16_t row, uint16_
 					con->override_fg = new_fg;
 					con->override_bg = new_bg;
 
-					vdf( "Cap fg: %d    Cap bg: %d\n", captured_fg, captured_bg );
-					vdf( "Overrides fg: 0x%08X    bg: 0x%08X\n", new_fg, new_bg );
+					//vdf( "Cap fg: %d    Cap bg: %d\n", captured_fg, captured_bg );
+					//vdf( "Overrides fg: 0x%08X    bg: 0x%08X\n", new_fg, new_bg );
 
 					con->use_color_override_fg = new_fg == 0 ? false : true;
 					con->use_color_override_bg = new_bg == 0 ? false : true;

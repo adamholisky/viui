@@ -9,6 +9,7 @@ vui_handle vui_label_create( uint16_t x, uint16_t y, char *text, uint32_t flags,
 	memset( label, 0, sizeof(vui_label) );
 
 	label->handle = H;
+	label->type = VUI_HANDLE_TYPE_LABEL;
 	label->flags = flags;
 	label->x = x;
 	label->y = y;
@@ -23,6 +24,7 @@ vui_handle vui_label_create( uint16_t x, uint16_t y, char *text, uint32_t flags,
 	vui_set_handle_data( H, label );
 	vui_add_to_parent( parent, H );
 
+	vui_create_cleanup(H);
 	return H;
 }
 
