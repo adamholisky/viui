@@ -1,5 +1,6 @@
 #include "vit.h"
 #include "vui_test.h"
+#include "vui/event.h"
 #include <SDL.h>
 #include <SDL_render.h>
 

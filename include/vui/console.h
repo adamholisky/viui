@@ -95,6 +95,7 @@ typedef struct {
 
 	bool show_cursor;
 	bool blink_hidden;
+	bool redraw_window;
 
 	vui_font *font;
 

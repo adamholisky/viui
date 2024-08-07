@@ -1,6 +1,7 @@
 #include "vit.h"
 #include "vui_test.h"
 #include "vui/vui.h"
+#include "vui/event.h"
 #include "vui/font.h"
 #include "vui/desktop.h"
 #include "vui/window.h"
@@ -58,15 +59,23 @@ void vui_main_test_loop( void ) {
 }
 
 void button1_on_mouse_up( vui_event *e ) {
+	static int num = 0;
+	char string[250];
+
 	vui_console *con_st = vui_get_handle_data(main_con);
 
-	vui_console_put_string( con_st, "Test 1 was clicked!\n" );
-	vui_draw( main_con );
+	sprintf( string, "Test 1 was clicked. Number of clicks: %d\n", ++num );
+
+	vui_console_put_string( con_st, string );
 }
 
 void button2_on_mouse_up( vui_event *e ) {
+	static int num = 0;
+	char string[250];
+
 	vui_console *con_st = vui_get_handle_data(main_con);
 
-	vui_console_put_string( con_st, "Test 2 was clicked!\n" );
-	vui_draw( main_con );
+	sprintf( string, "Test 2 was clicked. Number of clicks: %d", ++num );
+
+	vui_console_put_string( con_st, string );
 }

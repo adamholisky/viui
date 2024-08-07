@@ -21,17 +21,6 @@ extern "C" {
 #define VUI_HANDLE_TYPE_DESKTOP 4
 #define VUI_HANDLE_TYPE_CONSOLE 5
 
-#define VUI_EVENT_MOUSE_DOWN 1
-#define VUI_EVENT_MOUSE_UP 2
-#define VUI_EVENT_KEY_DOWN 3
-#define VUI_EVENT_KEY_UP 4
-
-#define VUI_EVENT_FLAG_LMB		(1 << 0)
-#define VUI_EVENT_FLAG_RMB		(1 << 1)
-#define VUI_EVENT_FLAG_SHIFT	(1 << 2)
-#define VUI_EVENT_FLAG_CTRL		(1 << 3)
-#define VUI_EVENT_FLAG_ALT		(1 << 4)
-
 typedef uint32_t vui_handle;
 
 typedef struct {
@@ -125,28 +114,26 @@ void vui_init( uint32_t *fb_addr, uint16_t width, uint16_t height );
 void vui_refresh( void );
 void vui_refresh_rect( uint16_t x, uint16_t y, uint16_t width, uint16_t height );
 
+/**************************************/
+/* Handle Management Functions                     */
+/**************************************/
 vui_handle vui_allocate_handle( uint16_t type );
-void vui_set_handle_data( vui_handle H, void *data );
-void *vui_get_handle_data( vui_handle H);
-void vui_draw( vui_handle H );
-void vui_draw_handle( vui_handle H );
-bool vui_handle_list_add( vui_handle_list *list, vui_handle handle_to_add );
-void vui_add_to_parent( vui_handle parent, vui_handle child );
-void vui_sort_list_by_priority( vui_handle_list *list );
 void vui_create_cleanup( vui_handle H );
-bool vui_is_dispatcher( uint16_t type );
+void vui_add_to_parent( vui_handle parent, vui_handle child );
 uint16_t vui_get_type_from_master_list( vui_handle H );
 
+void vui_set_handle_data( vui_handle H, void *data );
+void *vui_get_handle_data( vui_handle H);
+
+bool vui_handle_list_add( vui_handle_list *list, vui_handle handle_to_add );
+void vui_sort_list_by_priority( vui_handle_list *list );
+
+/**************************************/
+/* Drawing                 */
+/**************************************/
 vui_theme *vui_get_active_theme( void );
-
-void vui_external_event_handler_click( uint16_t x, uint16_t y, bool lmb, bool rmb );
-vui_handle vui_find_handler_for_event( vui_handle_list *list, vui_event *e );
-void vui_send_event( vui_handle H, vui_event *e );
-void vui_set_event_hanlder( vui_handle H, uint8_t event_type, void (*handler)(vui_event *) );
-
-/**************************************/
-/* Drawing Primatives                 */
-/**************************************/
+void vui_draw( vui_handle H );
+void vui_draw_handle( vui_handle H );
 void vui_draw_rect( uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color );
 void vui_draw_string( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, bool smoothing );
 void vui_draw_char_with_color( uint16_t char_num, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, bool smoothing );

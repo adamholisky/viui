@@ -84,12 +84,16 @@ void vui_console_draw( vui_handle H ) {
 }
 
 void vui_console_draw_from_struct( vui_console *con ) {
-	vui_draw_rect( con->pixel_x, con->pixel_y, con->pixel_width, con->pixel_height, con->bg_color );
-
+	if( con->redraw_window ) {
+		vui_draw_rect( con->pixel_x, con->pixel_y, con->pixel_width, con->pixel_height, con->bg_color );
+	}
+	
 	for( int i = 0; i < con->num_rows; i++ ) {
-		if( con->rows[i].dirty ) {
+		if( con->rows[i].dirty || con->redraw_window ) {
 			uint16_t x = con->text_area_x;
 			uint16_t y = con->text_area_y + (con->char_height * i);
+
+			vui_draw_rect( x, y, con->pixel_width, con->char_height, con->bg_color );
 
 			for( int j = 0; j < con->num_cols; j++ ) {
 				char c = (con->rows[i].buff[j] == 0 ? ' ' : con->rows[i].buff[j]);
@@ -112,6 +116,7 @@ void vui_console_draw_from_struct( vui_console *con ) {
 		}
 	}
 
+	con->redraw_window = false;
 	vui_refresh_rect( con->pixel_x, con->pixel_y, con->pixel_width, con->pixel_height );
 }
 
@@ -374,13 +379,23 @@ void vui_console_put_string( vui_console *con, char *str ) {
 }
 
 void vui_console_put_string_at( vui_console *con, char *str, uint16_t row, uint16_t col ) {
+	vdf( "Starting put_string_at cur_row: %d   cur_col %d\n", con->current_row, con->current_col );
+
 	for( ; *str; *str++ ) {
 		vui_console_put_char_at( con, *str, con->current_row, con->current_col );
 	}
+
+	vui_console_draw_from_struct( con );
 }
 
+/**
+ * @brief 
+ * 
+ * @param con 
+ * @param set_current_row_col 
+ */
 void vui_console_scroll_up( vui_console *con, bool set_current_row_col ) {
-	for(int i = 0; i < con->num_rows - 2; i++ ) {
+	for(int i = 0; i < con->num_rows - 1; i++ ) {
 		memcpy( con->rows[i].buff, con->rows[i + 1].buff, sizeof(char) * con->num_cols );
 		memcpy( con->rows[i].color_fg, con->rows[i + 1].color_fg, sizeof(uint32_t) * con->num_cols );
 		memcpy( con->rows[i].color_bg, con->rows[i + 1].color_bg, sizeof(uint32_t) * con->num_cols );
@@ -391,7 +406,10 @@ void vui_console_scroll_up( vui_console *con, bool set_current_row_col ) {
 	}
 
 	memset( con->rows[con->num_rows - 1].buff, 0, sizeof(char) * (con->num_cols) );
-
+	memset( con->rows[con->num_rows - 1].color_set_fg, 0, sizeof(uint8_t) * (con->num_cols) );
+	memset( con->rows[con->num_rows - 1].color_set_bg, 0, sizeof(uint8_t) * (con->num_cols) );
+	memset( con->rows[con->num_rows - 1].color_fg, 0, sizeof(uint32_t) * (con->num_cols) );
+	memset( con->rows[con->num_rows - 1].color_bg, 0, sizeof(uint32_t) * (con->num_cols) );
 
 
 /* 	// Move the console text up one line
@@ -502,7 +520,7 @@ char long_string_for_test[] = "\x1b[0;93;0mVersions VI\x1b[0;0;0m:\n";
 void vui_console_tests( vui_handle H ) {
 	vui_console *con = vui_get_handle_data(H);
 
-	vui_console_put_string( con, "VUI Console test suite. " );
+	vui_console_put_string( con, "VUI Console test suite.\n" );
 
 	vui_console_put_string( con, long_string_for_test );
 
@@ -524,6 +542,6 @@ void vui_console_tests( vui_handle H ) {
 	vui_console_put_string( con, "\x1b[0;97;0mSo many escape code colors\n" ); */
 
 	
-
+	con->redraw_window = true;
 	vui_console_draw_from_struct( con );
 }
