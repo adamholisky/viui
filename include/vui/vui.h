@@ -46,6 +46,8 @@ typedef struct {
 	// Mouse
 	uint16_t x;
 	uint16_t y;
+	uint16_t x_displacement;
+	uint16_t y_displacement;
 } vui_event;
 
 typedef struct {
@@ -73,12 +75,15 @@ typedef struct {
 
 	vui_handle_list dispatchers;
 	vui_handle handle_next;
+
+	vui_handle last_hover;
 } vui_core;
 
 typedef struct {
 	void (*default_on_mouse_down)(vui_event *);
 	void (*default_on_mouse_enter)(vui_event *);
 	void (*default_on_mouse_exit)(vui_event *);
+	void (*default_on_mouse_move)(vui_event *);
 	void (*default_on_mouse_up)(vui_event *);
 
 	void (*on_mouse_down)(vui_event *);
@@ -101,6 +106,8 @@ typedef struct {
 	uint16_t height;
 	uint16_t absolute_x;
 	uint16_t absolute_y;
+
+	bool is_hover;
 } vui_common;
 
 #define INSERT_VUI_COMMON uint16_t type; \
@@ -114,7 +121,8 @@ uint16_t y; \
 uint16_t width; \
 uint16_t height; \
 uint16_t absolute_x; \
-uint16_t absolute_y;
+uint16_t absolute_y; \
+bool is_hover;
 
 /**************************************/
 /* Core Functions                     */

@@ -65,14 +65,24 @@ void vit_gui_test( void ) {
 
 	while( quit == false ) {
 		while( SDL_PollEvent( &e ) ) { 
+			vui_event vevent;
+			int x, y;
+
 			switch( e.type ) {
 				case SDL_QUIT:
 					quit = true;
 					break;
+				case SDL_MOUSEMOTION:
+					SDL_GetMouseState( &x, &y );
+
+					vevent.type = VUI_EVENT_MOUSE_MOVE;
+					vevent.x = x;
+					vevent.y = y;
+
+					vui_external_event_handler( VUI_EVENT_MOUSE_MOVE, x, y, false, false );
+					break;
 				case SDL_MOUSEBUTTONDOWN:
 				case SDL_MOUSEBUTTONUP:
-					int x, y;
-
 					SDL_GetMouseState( &x, &y );
 
 					//vdf( "mb: %d\n", e.button.button );

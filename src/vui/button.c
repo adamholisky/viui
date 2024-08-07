@@ -2,6 +2,8 @@
 #include "vui/button.h"
 #include "vui/event.h"
 
+extern vui_core vui;
+
 vui_handle vui_button_create( char *text, uint16_t x, uint16_t y, uint16_t width, uint16_t height, vui_handle parent ) {
 	vdf( "Create Button: x: %d    y: %d    width: %d    height: %d\n", x, y, width, height );
 
@@ -40,6 +42,7 @@ vui_handle vui_button_create( char *text, uint16_t x, uint16_t y, uint16_t width
 	button->ops.default_on_mouse_up = vui_button_on_mouse_up;
 	button->ops.default_on_mouse_enter = vui_button_on_mouse_enter;
 	button->ops.default_on_mouse_exit = vui_button_on_mouse_exit;
+	button->ops.default_on_mouse_move = vui_button_on_mouse_move;
 
 	strcpy( button->text, text );
 
@@ -107,20 +110,31 @@ void vui_button_set_text( vui_handle H, char *text ) {
 	strncpy( b->text, text, VUI_BUTTON_TEXT_MAX );
 }
 
+void vui_button_on_mouse_move( vui_event *e ) {
+	vui_button *b = vui_get_handle_data(e->H);
+
+	if( !b->is_hover ) {
+		vui_button_on_mouse_enter(e);
+	}
+}
+
 void vui_button_on_mouse_enter( vui_event *e ) {
 	vui_button *b = vui_get_handle_data(e->H);
 
 	b->is_hover = true;
+	vui.last_hover = e->H;
 
 	vui_button_draw_from_struct(b);
+	vui_refresh_handle(e->H);
 }
 
 void vui_button_on_mouse_exit( vui_event *e ) {
 	vui_button *b = vui_get_handle_data(e->H);
 
-	b->is_hover = true;
+	b->is_hover = false;
 
 	vui_button_draw_from_struct(b);
+	vui_refresh_handle(e->H);
 }
 
 void vui_button_on_mouse_down( vui_event *e ) {

@@ -26,7 +26,7 @@ typedef struct {
 	uint32_t color_foreground;
 	uint32_t color_background;
 
-	bool is_hover;
+	
 	bool is_active;
 
 	char text[VUI_BUTTON_TEXT_MAX];
@@ -40,6 +40,7 @@ void vui_button_draw_from_struct( vui_button *window );
 void vui_window_set_color( vui_handle H, uint32_t color_foreground, uint32_t color_background );
 void vui_button_set_text( vui_handle H, char *title );
 
+void vui_button_on_mouse_move( vui_event *e );
 void vui_button_on_mouse_enter( vui_event *e );
 void vui_button_on_mouse_exit( vui_event *e );
 void vui_button_on_mouse_up( vui_event *e );

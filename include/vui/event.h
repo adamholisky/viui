@@ -10,6 +10,7 @@ extern "C" {
 #define VUI_EVENT_MOUSE_UP 2
 #define VUI_EVENT_KEY_DOWN 3
 #define VUI_EVENT_KEY_UP 4
+#define VUI_EVENT_MOUSE_MOVE 5
 
 #define VUI_EVENT_FLAG_LMB		(1 << 0)
 #define VUI_EVENT_FLAG_RMB		(1 << 1)
