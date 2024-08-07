@@ -107,6 +107,11 @@ typedef struct {
 	uint16_t absolute_x;
 	uint16_t absolute_y;
 
+	uint16_t inner_x;
+	uint16_t inner_y;
+	uint16_t inner_width;
+	uint16_t inner_height;
+
 	bool is_hover;
 } vui_common;
 
@@ -122,7 +127,12 @@ uint16_t width; \
 uint16_t height; \
 uint16_t absolute_x; \
 uint16_t absolute_y; \
-bool is_hover;
+uint16_t inner_x; \
+uint16_t inner_y; \
+uint16_t inner_width; \
+uint16_t inner_height; \
+bool is_hover; 
+
 
 /**************************************/
 /* Core Functions                     */

@@ -32,10 +32,10 @@ void vui_init( uint32_t *fb_addr, uint16_t width, uint16_t height ) {
 	vui.active_theme.window_background = 0x00D6D6D6;
 	vui.active_theme.window_title_bar_background = 0x00363636;
 	vui.active_theme.window_title_bar_foreground = 0x00EAEAEA;
-	vui.active_theme.button_foreground = COLOR_RGB_BLACK;
-	vui.active_theme.button_background = COLOR_RGB_WHITE;
-	vui.active_theme.button_active = COLOR_RGB_BLUE;
-	vui.active_theme.button_hover = COLOR_RGB_GREEN;
+	vui.active_theme.button_foreground = 0x00363636;
+	vui.active_theme.button_background = 0x00B6B6B6;
+	vui.active_theme.button_hover = 0x00B6B6B6;
+	vui.active_theme.button_active = 0x00757575;	
 }
 
 /**

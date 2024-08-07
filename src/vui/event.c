@@ -93,12 +93,10 @@ void vui_send_event( vui_handle H, vui_event *e ) {
 
 	void (*handler_to_call)(vui_event *) = NULL;
 
-	vdf( "type: %d\n", e->type );
-
 	// Handle mouse exiting
 	if( vui.last_hover != 0) {
 		if( vui.last_hover != e->H ) {
-			vdf( "in in, last hover: %d\n", vui.last_hover );
+			//vdf( "in in, last hover: %d\n", vui.last_hover );
 
 			vui_common *hov_elem = vui_get_handle_data(vui.last_hover);
 			vui_event exit_event;

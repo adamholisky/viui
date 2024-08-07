@@ -18,11 +18,6 @@ typedef struct {
 
 	uint32_t flags;
 
-	uint16_t inner_x;
-	uint16_t inner_y;
-	uint16_t inner_width;
-	uint16_t inner_height;
-
 	uint32_t color_foreground;
 	uint32_t color_background;
 

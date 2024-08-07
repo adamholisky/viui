@@ -61,7 +61,7 @@ mfdebug:
 all: $(EXE_NAME)
 
 run: $(EXE_NAME)
-	./$(EXE_NAME)
+	SDL_VIDEODRIVER=wayland ./$(EXE_NAME)
 
 clean:
 	@$(eval MF_ACTION := $(COLOR_BLUE)Cleaning $(COLOR_END))

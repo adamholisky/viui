@@ -92,6 +92,14 @@ vui_font *vui_font_get_main_font( void ) {
     return main_font;
 }
 
+void vui_font_get_bounding_box( char *text, vui_font *font, uint16_t *width, uint16_t *height ) {
+	uint16_t num_chars = strlen(text);
+	vui_font *f = ( font == NULL ? main_font : font );
+
+	*width = num_chars * f->info.width;
+	*height = f->info.height;
+}
+
 /**
  * @brief Loads the given PSF font, sets it as the primary font.
  * 

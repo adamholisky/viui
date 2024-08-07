@@ -70,11 +70,6 @@ void vui_button_draw_from_struct( vui_button *button ) {
 		}
 	}
 
-	// TODO REMOVE WHEN MOVE MOVEMENT IMPLEMENTED
-	if( button->is_active ) {
-		bg_color = theme->button_active;
-	}
-
 	// Border
 	vui_draw_rect( button->x, button->y, button->width, button->height, theme->border );
 
@@ -82,7 +77,15 @@ void vui_button_draw_from_struct( vui_button *button ) {
 	vui_draw_rect( button->inner_x, button->inner_y, button->inner_width, button->inner_height, bg_color );
 
 	// Text
-	vui_draw_string( button->text, button->inner_x + 3, button->inner_y + 3, button->color_foreground, bg_color, vui_font_get_font("Zap VGA"), true );
+	uint16_t width;
+	uint16_t height;
+
+	vui_font_get_bounding_box( button->text, vui_font_get_font("Zap VGA"), &width, &height );
+
+	uint16_t x = button->absolute_x + (button->width / 2) - (width / 2);
+	uint16_t y = button->absolute_y + (button->height / 2) - (height / 2);
+
+	vui_draw_string( button->text, x, y, button->color_foreground, bg_color, vui_font_get_font("Zap VGA"), true );
 }
 
 /**
@@ -132,6 +135,7 @@ void vui_button_on_mouse_exit( vui_event *e ) {
 	vui_button *b = vui_get_handle_data(e->H);
 
 	b->is_hover = false;
+	b->is_active = false; // to handle if moust is down and moved out of area
 
 	vui_button_draw_from_struct(b);
 	vui_refresh_handle(e->H);
