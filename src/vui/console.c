@@ -2,6 +2,16 @@
 #include <vui/console.h>
 #include <vui/font.h>
 
+/**
+ * @brief 
+ * 
+ * @param x 
+ * @param y 
+ * @param width 
+ * @param height 
+ * @param parent 
+ * @return vui_handle 
+ */
 vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t height, vui_handle parent ) {
 	vdf( "Create Console: x: %d    y: %d    width: %d    height: %d\n", x, y, width, height );
 
@@ -79,10 +89,20 @@ vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t 
 	return H;
 }
 
+/**
+ * @brief 
+ * 
+ * @param H 
+ */
 void vui_console_draw( vui_handle H ) {
 	vui_console_draw_from_struct( vui_get_handle_data(H) );
 }
 
+/**
+ * @brief 
+ * 
+ * @param con 
+ */
 void vui_console_draw_from_struct( vui_console *con ) {
 	if( con->redraw_window ) {
 		vui_draw_rect( con->pixel_x, con->pixel_y, con->pixel_width, con->pixel_height, con->bg_color );
@@ -120,10 +140,24 @@ void vui_console_draw_from_struct( vui_console *con ) {
 	vui_refresh_rect( con->pixel_x, con->pixel_y, con->pixel_width, con->pixel_height );
 }
 
+/**
+ * @brief 
+ * 
+ * @param con 
+ * @param c 
+ */
 void vui_console_put_char( vui_console *con, uint8_t c ) { 
 	vui_console_put_char_at( con, c, con->current_row, con->current_col );
 }
 
+/**
+ * @brief 
+ * 
+ * @param con 
+ * @param c 
+ * @param row 
+ * @param col 
+ */
 void vui_console_put_char_at( vui_console *con, uint8_t c, uint16_t row, uint16_t col ) {
 	uint16_t cursor_x = con->current_pixel_x;
 	uint16_t cursor_y = con->current_pixel_y;
@@ -149,176 +183,7 @@ void vui_console_put_char_at( vui_console *con, uint8_t c, uint16_t row, uint16_
 			break;
 		default:
 			if( con->capturing_escape_code ) {
-				if( c == 'm' ) {
-					con->captured_escape[ con->capture_num ] = 0;
-					con->capturing_escape_code = false;
-					
-					int set_number = 0;
-					char set_1[4];
-					char set_2[4];
-					char set_3[4];
-
-					memset( set_1, 0, 4 );
-					memset( set_2, 0, 4 );
-					memset( set_3, 0, 4 );
-
-					int n = 0;
-					for( int i = 0; i < con->capture_num; i++ ) {
-						if( con->captured_escape[i] == '[' ) {
-							set_number = 1;
-						} else {
-							if( con->captured_escape[i] == ';' ) {
-								set_number++;
-								n = 0;
-							} else {
-								switch( set_number ) {
-									case 1:
-										set_1[n] = con->captured_escape[i];
-										n++;
-										break;
-									case 2:
-										set_2[n] = con->captured_escape[i];
-										n++;
-										break;
-									case 3:
-										set_3[n] = con->captured_escape[i];
-										n++;
-										break;
-								}
-							}
-						}
-					}
-
-					int captured_fg = atoi(set_2);
-					int captured_bg = atoi(set_3);
-
-					//int captured_fg = ((con->captured_escape[3] - '0') * 10) + (con->captured_escape[4] - '0');
-					//int captured_bg = ((con->captured_escape[6] - '0') * 10) + (con->captured_escape[7] - '0');
-
-					uint32_t new_fg = 0;
-					uint32_t new_bg = 0;
-
-					switch( captured_fg ) {
-						case 30:
-							new_fg = CONSOLE_COLOR_RGB_BLACK;
-							break;
-						case 31:
-							new_fg = CONSOLE_COLOR_RGB_RED;
-							break;
-						case 32:
-							new_fg = CONSOLE_COLOR_RGB_GREEN;
-							break;
-						case 33:
-							new_fg = CONSOLE_COLOR_RGB_BROWN;
-							break;
-						case 34:
-							new_fg = CONSOLE_COLOR_RGB_BLUE;
-							break;
-						case 35:
-							new_fg = CONSOLE_COLOR_RGB_MAGENTA;
-							break;
-						case 36:
-							new_fg = CONSOLE_COLOR_RGB_CYAN;
-							break;
-						case 37:
-							new_fg = CONSOLE_COLOR_RGB_LIGHT_GREY;
-							break;
-						case 90:
-							new_fg = CONSOLE_COLOR_RGB_DARK_GREY;
-							break;
-						case 91:
-							new_fg = CONSOLE_COLOR_RGB_LIGHT_RED;
-							break;
-						case 92:
-							new_fg = CONSOLE_COLOR_RGB_LIGHT_GREEN;
-							break;
-						case 93:
-							new_fg = CONSOLE_COLOR_RGB_YELLOW;
-							break;
-						case 94:
-							new_fg = CONSOLE_COLOR_RGB_LIGHT_BLUE;
-							break;
-						case 95:
-							new_fg = CONSOLE_COLOR_RGB_LIGHT_MAGENTA;
-							break;
-						case 96:
-							new_fg = CONSOLE_COLOR_RGB_LIGHT_CYAN;
-							break;
-						case 97:
-							new_fg = CONSOLE_COLOR_RGB_WHITE;
-							break;
-						default:
-							new_fg = 0;
-					}
-
-					switch( captured_bg ) {
-						case 40:
-							new_bg = CONSOLE_COLOR_RGB_BLACK;
-							break;
-						case 41:
-							new_bg = CONSOLE_COLOR_RGB_RED;
-							break;
-						case 42:
-							new_bg = CONSOLE_COLOR_RGB_GREEN;
-							break;
-						case 43:
-							new_bg = CONSOLE_COLOR_RGB_BROWN;
-							break;
-						case 44:
-							new_bg = CONSOLE_COLOR_RGB_BLUE;
-							break;
-						case 45:
-							new_bg = CONSOLE_COLOR_RGB_MAGENTA;
-							break;
-						case 46:
-							new_bg = CONSOLE_COLOR_RGB_CYAN;
-							break;
-						case 47:
-							new_bg = CONSOLE_COLOR_RGB_WHITE;
-							break;
-						case 100:
-							new_fg = CONSOLE_COLOR_RGB_DARK_GREY;
-							break;
-						case 101:
-							new_fg = CONSOLE_COLOR_RGB_LIGHT_RED;
-							break;
-						case 102:
-							new_fg = CONSOLE_COLOR_RGB_LIGHT_GREEN;
-							break;
-						case 103:
-							new_fg = CONSOLE_COLOR_RGB_YELLOW;
-							break;
-						case 104:
-							new_fg = CONSOLE_COLOR_RGB_LIGHT_BLUE;
-							break;
-						case 105:
-							new_fg = CONSOLE_COLOR_RGB_LIGHT_MAGENTA;
-							break;
-						case 106:
-							new_fg = CONSOLE_COLOR_RGB_LIGHT_CYAN;
-							break;
-						case 107:
-							new_fg = CONSOLE_COLOR_RGB_WHITE;
-							break;
-						default:
-							new_bg = 0;
-					}
-
-					con->override_fg = new_fg;
-					con->override_bg = new_bg;
-
-					//vdf( "Cap fg: %d    Cap bg: %d\n", captured_fg, captured_bg );
-					//vdf( "Overrides fg: 0x%08X    bg: 0x%08X\n", new_fg, new_bg );
-
-					con->use_color_override_fg = new_fg == 0 ? false : true;
-					con->use_color_override_bg = new_bg == 0 ? false : true;
-
-					con->capture_num = 0;
-				} else {
-					//vdf( "added: %d -> %c\n", con->capture_num, c );
-					con->captured_escape[ con->capture_num ] = c;
-					con->capture_num++;
-				}
+				vui_console_process_escape( con, c );
 			} else {
 				if( con->current_col == con->num_cols + 1 ) {
 					vui_console_put_char( con, '\n' );
@@ -361,23 +226,235 @@ void vui_console_put_char_at( vui_console *con, uint8_t c, uint16_t row, uint16_
 	}
 }
 
+/**
+ * @brief 
+ * 
+ * @param con 
+ * @param c 
+ */
+void vui_console_process_escape( vui_console *con, char c ) {
+	if( c == 'm' ) {
+		con->captured_escape[ con->capture_num ] = 0;
+		con->capturing_escape_code = false;
+		
+		int set_number = 0;
+		char set_1[4];
+		char set_2[4];
+		char set_3[4];
+
+		memset( set_1, 0, 4 );
+		memset( set_2, 0, 4 );
+		memset( set_3, 0, 4 );
+
+		int n = 0;
+		for( int i = 0; i < con->capture_num; i++ ) {
+			if( con->captured_escape[i] == '[' ) {
+				set_number = 1;
+			} else {
+				if( con->captured_escape[i] == ';' ) {
+					set_number++;
+					n = 0;
+				} else {
+					switch( set_number ) {
+						case 1:
+							set_1[n] = con->captured_escape[i];
+							n++;
+							break;
+						case 2:
+							set_2[n] = con->captured_escape[i];
+							n++;
+							break;
+						case 3:
+							set_3[n] = con->captured_escape[i];
+							n++;
+							break;
+					}
+				}
+			}
+		}
+
+		int captured_fg = atoi(set_2);
+		int captured_bg = atoi(set_3);
+
+		//int captured_fg = ((con->captured_escape[3] - '0') * 10) + (con->captured_escape[4] - '0');
+		//int captured_bg = ((con->captured_escape[6] - '0') * 10) + (con->captured_escape[7] - '0');
+
+		uint32_t new_fg = 0;
+		uint32_t new_bg = 0;
+
+		switch( captured_fg ) {
+			case 30:
+				new_fg = CONSOLE_COLOR_RGB_BLACK;
+				break;
+			case 31:
+				new_fg = CONSOLE_COLOR_RGB_RED;
+				break;
+			case 32:
+				new_fg = CONSOLE_COLOR_RGB_GREEN;
+				break;
+			case 33:
+				new_fg = CONSOLE_COLOR_RGB_BROWN;
+				break;
+			case 34:
+				new_fg = CONSOLE_COLOR_RGB_BLUE;
+				break;
+			case 35:
+				new_fg = CONSOLE_COLOR_RGB_MAGENTA;
+				break;
+			case 36:
+				new_fg = CONSOLE_COLOR_RGB_CYAN;
+				break;
+			case 37:
+				new_fg = CONSOLE_COLOR_RGB_LIGHT_GREY;
+				break;
+			case 90:
+				new_fg = CONSOLE_COLOR_RGB_DARK_GREY;
+				break;
+			case 91:
+				new_fg = CONSOLE_COLOR_RGB_LIGHT_RED;
+				break;
+			case 92:
+				new_fg = CONSOLE_COLOR_RGB_LIGHT_GREEN;
+				break;
+			case 93:
+				new_fg = CONSOLE_COLOR_RGB_YELLOW;
+				break;
+			case 94:
+				new_fg = CONSOLE_COLOR_RGB_LIGHT_BLUE;
+				break;
+			case 95:
+				new_fg = CONSOLE_COLOR_RGB_LIGHT_MAGENTA;
+				break;
+			case 96:
+				new_fg = CONSOLE_COLOR_RGB_LIGHT_CYAN;
+				break;
+			case 97:
+				new_fg = CONSOLE_COLOR_RGB_WHITE;
+				break;
+			default:
+				new_fg = 0;
+		}
+
+		switch( captured_bg ) {
+			case 40:
+				new_bg = CONSOLE_COLOR_RGB_BLACK;
+				break;
+			case 41:
+				new_bg = CONSOLE_COLOR_RGB_RED;
+				break;
+			case 42:
+				new_bg = CONSOLE_COLOR_RGB_GREEN;
+				break;
+			case 43:
+				new_bg = CONSOLE_COLOR_RGB_BROWN;
+				break;
+			case 44:
+				new_bg = CONSOLE_COLOR_RGB_BLUE;
+				break;
+			case 45:
+				new_bg = CONSOLE_COLOR_RGB_MAGENTA;
+				break;
+			case 46:
+				new_bg = CONSOLE_COLOR_RGB_CYAN;
+				break;
+			case 47:
+				new_bg = CONSOLE_COLOR_RGB_WHITE;
+				break;
+			case 100:
+				new_fg = CONSOLE_COLOR_RGB_DARK_GREY;
+				break;
+			case 101:
+				new_fg = CONSOLE_COLOR_RGB_LIGHT_RED;
+				break;
+			case 102:
+				new_fg = CONSOLE_COLOR_RGB_LIGHT_GREEN;
+				break;
+			case 103:
+				new_fg = CONSOLE_COLOR_RGB_YELLOW;
+				break;
+			case 104:
+				new_fg = CONSOLE_COLOR_RGB_LIGHT_BLUE;
+				break;
+			case 105:
+				new_fg = CONSOLE_COLOR_RGB_LIGHT_MAGENTA;
+				break;
+			case 106:
+				new_fg = CONSOLE_COLOR_RGB_LIGHT_CYAN;
+				break;
+			case 107:
+				new_fg = CONSOLE_COLOR_RGB_WHITE;
+				break;
+			default:
+				new_bg = 0;
+		}
+
+		con->override_fg = new_fg;
+		con->override_bg = new_bg;
+
+		//vdf( "Cap fg: %d    Cap bg: %d\n", captured_fg, captured_bg );
+		//vdf( "Overrides fg: 0x%08X    bg: 0x%08X\n", new_fg, new_bg );
+
+		con->use_color_override_fg = new_fg == 0 ? false : true;
+		con->use_color_override_bg = new_bg == 0 ? false : true;
+
+		con->capture_num = 0;
+	} else {
+		//vdf( "added: %d -> %c\n", con->capture_num, c );
+		con->captured_escape[ con->capture_num ] = c;
+		con->capture_num++;
+	}
+}
+
+/**
+ * @brief
+ * 
+ * @param con 
+ * @param foreground_color 
+ * @param background_color 
+ */
 void vui_console_set_color( vui_console *con, uint32_t foreground_color, uint32_t background_color ) {
 	con->fg_color = foreground_color;
 	con->bg_color = background_color;
 }
 
+/**
+ * @brief 
+ * 
+ * @param con 
+ * @return uint32_t 
+ */
 uint32_t vui_console_get_foreground_color( vui_console *con ) {
 	return con->fg_color;
 }
 
+/**
+ * @brief 
+ * 
+ * @param con 
+ * @return uint32_t 
+ */
 uint32_t vui_console_get_background_color( vui_console *con ) {
 	return con->bg_color;
 }
 
+/**
+ * @brief 
+ * 
+ * @param con 
+ * @param str 
+ */
 void vui_console_put_string( vui_console *con, char *str ) {
 	vui_console_put_string_at( con, str, con->current_row, con->current_col );
 }
 
+/**
+ * @brief 
+ * 
+ * @param con 
+ * @param str 
+ * @param row 
+ * @param col 
+ */
 void vui_console_put_string_at( vui_console *con, char *str, uint16_t row, uint16_t col ) {
 	vdf( "Starting put_string_at cur_row: %d   cur_col %d\n", con->current_row, con->current_col );
 
@@ -430,6 +507,11 @@ void vui_console_scroll_up( vui_console *con, bool set_current_row_col ) {
 	}
 }
 
+/**
+ * @brief 
+ * 
+ * @param con 
+ */
 void vui_console_do_tab( vui_console *con ) {
 	// Only do a tab if there's space left. Need to look into this.
 	if( con->current_col + con->tab_size < con->num_cols ) {
@@ -451,6 +533,11 @@ void vui_console_do_tab( vui_console *con ) {
 	}
 }
 
+/**
+ * @brief 
+ * 
+ * @param con 
+ */
 void vui_console_do_new_line( vui_console *con ) {
 	con->current_col = 1;
 	
@@ -464,6 +551,11 @@ void vui_console_do_new_line( vui_console *con ) {
 	con->current_pixel_x = con->text_area_x;
 }
 
+/**
+ * @brief 
+ * 
+ * @param con 
+ */
 void vui_console_do_backspace( vui_console *con ) {
 	bool cursor_visibility = con->show_cursor;
 
@@ -498,6 +590,11 @@ void vui_console_update_cursor( vui_console *con ) {
 	}
 }
 
+/**
+ * @brief 
+ * 
+ * @param con 
+ */
 void vui_console_blink_cursor( vui_console *con ) {
 	uint8_t c = 0;
 
@@ -515,9 +612,14 @@ void vui_console_blink_cursor( vui_console *con ) {
 	}
 }
 
-char long_string_for_test[] = "\x1b[0;93;0mVersions VI\x1b[0;0;0m:\n";
-
+/**
+ * @brief 
+ * 
+ * @param H 
+ */
 void vui_console_tests( vui_handle H ) {
+	char long_string_for_test[] = "\x1b[0;93;0mVersions VI\x1b[0;0;0m:\n";
+
 	vui_console *con = vui_get_handle_data(H);
 
 	vui_console_put_string( con, "VUI Console test suite.\n" );

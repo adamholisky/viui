@@ -109,6 +109,7 @@ void vui_console_tests( vui_handle H );
 
 void vui_console_put_char( vui_console *con, uint8_t c );
 void vui_console_put_char_at( vui_console *con, uint8_t c, uint16_t row, uint16_t col );
+void vui_console_process_escape( vui_console *con, char c );
 void vui_console_set_color( vui_console *con, uint32_t foreground_color, uint32_t background_color );
 uint32_t vui_console_get_foreground_color( vui_console *con );
 uint32_t vui_console_get_background_color( vui_console *con );
