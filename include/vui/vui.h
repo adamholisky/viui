@@ -20,6 +20,7 @@ extern "C" {
 #define VUI_HANDLE_TYPE_BUTTON 3
 #define VUI_HANDLE_TYPE_DESKTOP 4
 #define VUI_HANDLE_TYPE_CONSOLE 5
+#define VUI_HANDLE_TYPE_MENUBAR 6
 
 typedef uint32_t vui_handle;
 
@@ -61,6 +62,8 @@ typedef struct {
 	uint32_t button_background;
 	uint32_t button_active;
 	uint32_t button_hover;
+	uint32_t menubar_background;
+	uint32_t menubar_foreground;
 } vui_theme;
 
 typedef struct {

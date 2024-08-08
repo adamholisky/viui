@@ -7,6 +7,7 @@
 #include "vui/label.h"
 #include "vui/console.h"
 #include "vui/button.h"
+#include "vui/menubar.h"
 
 vui_core vui;
 
@@ -35,7 +36,9 @@ void vui_init( uint32_t *fb_addr, uint16_t width, uint16_t height ) {
 	vui.active_theme.button_foreground = 0xD6D6D6;
 	vui.active_theme.button_background = 0x0056C1;	
 	vui.active_theme.button_hover = 0x0064E1;
-	vui.active_theme.button_active = 0x003476;	
+	vui.active_theme.button_active = 0x003476;
+	vui.active_theme.menubar_background = 0xD9D9D9;
+	vui.active_theme.menubar_foreground = 0x363636;
 }
 
 /**
@@ -307,6 +310,9 @@ void vui_draw_handle( vui_handle H ) {
 			break;
 		case VUI_HANDLE_TYPE_BUTTON:
 			vui_button_draw_from_struct( vui.handles[H].data );
+			break;
+		case VUI_HANDLE_TYPE_MENUBAR:
+			vui_menubar_draw_from_struct( vui.handles[H].data );
 			break;
 		default:
 			vdf( "VUI: Cannot find handle type to draw.\n" );

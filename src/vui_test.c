@@ -9,6 +9,7 @@
 #include "vui/label.h"
 #include "vui/console.h"
 #include "vui/button.h"
+#include <vui/menubar.h>
 
 vui_handle main_con;
 
@@ -31,17 +32,23 @@ void vui_main_test_loop( void ) {
 
 	vui_theme *theme = vui_get_active_theme();
 
-	vui_handle desktop = vui_desktop_create( 0, 0, vui.width, vui.height, VUI_DESKTOP_FLAG_NONE );
+	vui_handle menubar = vui_menubar_create();
+	vui_handle_set_name( menubar, "main_menubar" );
+
+	vui_handle desktop = vui_desktop_create( 0, 25, vui.width, vui.height - 25, VUI_DESKTOP_FLAG_NONE );
 	vui_handle smooth_text = vui_label_create( 5, 768 - 25, "Versions OS 6.0.0.1", VUI_LABEL_FLAG_NONE, desktop );
 	vui_label_set_color( smooth_text, COLOR_RGB_WHITE, theme->window_background );
 	vui_handle_set_name( desktop, "desktop" );
 
-	vui_handle win = vui_window_create( 25, 25, 400, 300, VUI_WINDOW_FLAG_NONE );
+
+
+	vui_handle win = vui_window_create( 25, 40, 400, 300, VUI_WINDOW_FLAG_NONE );
 	vui_window_set_title( win, "ViOS 6" );
 	vui_window *win_s = vui_get_handle_data(win);
 	main_con = vui_console_create( win_s->inner_x, win_s->inner_y, win_s->inner_width, win_s->inner_height, win );
 	vui_handle_set_name( win, "window_console" );
 
+	vui_draw( menubar );
 	vui_draw( desktop );
 	vui_draw( win );
 
@@ -54,7 +61,7 @@ void vui_main_test_loop( void ) {
 }
 
 void example_create_with_layout_engine( void ) {
-	vui_handle win = vui_window_create( 450, 25, 400, 200, VUI_WINDOW_FLAG_NONE );
+	vui_handle win = vui_window_create( 450, 40, 400, 200, VUI_WINDOW_FLAG_NONE );
 	vui_window_set_title( win, "ViOS Control Tests -- Layout Engine" );
 	vui_set_event_handler( win, VUI_EVENT_ALL, test_window_event_handler );
 	vui_handle_set_name( win, "window_ctest" );	
