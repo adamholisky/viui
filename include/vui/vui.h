@@ -39,6 +39,7 @@ typedef struct {
 	vui_handle H;
 	uint8_t type;
 	uint32_t flags;
+	char name[50];
 
 	// Keyboard
 	char key;
@@ -80,6 +81,8 @@ typedef struct {
 } vui_core;
 
 typedef struct {
+	void (*event_handler)(vui_event *);
+
 	void (*default_on_mouse_down)(vui_event *);
 	void (*default_on_mouse_enter)(vui_event *);
 	void (*default_on_mouse_exit)(vui_event *);
@@ -95,6 +98,7 @@ typedef struct {
 typedef struct {
 	uint16_t type;
 	vui_handle handle;
+	char name[50];
 	vui_handle parent;
 	vui_handle_list children;
 	uint32_t priority;
@@ -117,20 +121,24 @@ typedef struct {
 
 #define INSERT_VUI_COMMON uint16_t type; \
 vui_handle handle; \
+char name[50]; \
 vui_handle parent; \
 vui_handle_list children; \
 uint32_t priority; \
 vui_operations ops; \
+\
 uint16_t x; \
 uint16_t y; \
 uint16_t width; \
 uint16_t height; \
 uint16_t absolute_x; \
 uint16_t absolute_y; \
+\
 uint16_t inner_x; \
 uint16_t inner_y; \
 uint16_t inner_width; \
 uint16_t inner_height; \
+\
 bool is_hover; 
 
 
@@ -149,7 +157,8 @@ vui_handle vui_allocate_handle( uint16_t type );
 void vui_create_cleanup( vui_handle H );
 void vui_add_to_parent( vui_handle parent, vui_handle child );
 uint16_t vui_get_type_from_master_list( vui_handle H );
-
+void vui_handle_set_name( vui_handle H, char *name );
+char *vui_handle_get_name( vui_handle H);
 void vui_set_handle_data( vui_handle H, void *data );
 void *vui_get_handle_data( vui_handle H);
 

@@ -54,8 +54,6 @@ void vit_gui_test( void ) {
 	fb[ (10*SCREEN_WIDTH) + 11 ] = 0x00FFFFFF;
 	SDL_UpdateWindowSurface( window ); */
 
-	printf( "sdl video driver: %s\n", SDL_GetCurrentVideoDriver() );	
-
 	// Enter VUI's GUI
 	vui_init( fb, SCREEN_WIDTH, SCREEN_HEIGHT );
 

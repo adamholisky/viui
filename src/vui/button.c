@@ -114,18 +114,20 @@ void vui_button_set_text( vui_handle H, char *text ) {
 }
 
 void vui_button_on_mouse_move( vui_event *e ) {
-	vui_button *b = vui_get_handle_data(e->H);
+	/* vui_button *b = vui_get_handle_data(e->H);
 
 	if( !b->is_hover ) {
 		vui_button_on_mouse_enter(e);
-	}
+	} */
 }
 
 void vui_button_on_mouse_enter( vui_event *e ) {
 	vui_button *b = vui_get_handle_data(e->H);
 
 	b->is_hover = true;
-	vui.last_hover = e->H;
+	//vui.last_hover = e->H;
+
+	//e->type = VUI_EVENT_MOUSE_ENTER;
 
 	vui_button_draw_from_struct(b);
 	vui_refresh_handle(e->H);
@@ -136,6 +138,8 @@ void vui_button_on_mouse_exit( vui_event *e ) {
 
 	b->is_hover = false;
 	b->is_active = false; // to handle if moust is down and moved out of area
+
+	//e->type = VUI_EVENT_MOUSE_EXIT;
 
 	vui_button_draw_from_struct(b);
 	vui_refresh_handle(e->H);

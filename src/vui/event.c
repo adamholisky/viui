@@ -28,17 +28,24 @@ void vui_external_event_handler( uint8_t event_type, uint16_t x, uint16_t y, boo
 	vui_handle dispatcher = vui_find_handler_for_event( &vui.dispatchers, &event );
 
 	if( dispatcher != 0 ) {
-		vui_common *handler_st = vui_get_handle_data(dispatcher);
-		vui_handle handler = vui_find_handler_for_event( &handler_st->children, &event );
+		vui_common *vc_dispatcher = vui_get_handle_data(dispatcher);
+		vui_handle handler = vui_find_handler_for_event( &vc_dispatcher->children, &event );
 
 		// If there's a child to send the event to, do it
 		// Otherwise send to the dispatcher
 		if( handler != 0 ) {
 			event.H = handler;
+			strcpy( event.name, vui_handle_get_name(event.H) );
 			vui_send_event( handler, &event );
 		} else {
 			event.H = dispatcher;
+			strcpy( event.name, vui_handle_get_name(event.H) );
 			vui_send_event( dispatcher, &event );
+		}
+
+		// If there's an event handler present on the dispatcher, call that
+		if( vc_dispatcher->ops.event_handler != NULL ) {
+			vc_dispatcher->ops.event_handler( &event );
 		}
 	}
 }
@@ -94,27 +101,39 @@ void vui_send_event( vui_handle H, vui_event *e ) {
 	void (*handler_to_call)(vui_event *) = NULL;
 
 	// Handle mouse exiting
-	if( vui.last_hover != 0) {
-		if( vui.last_hover != e->H ) {
-			//vdf( "in in, last hover: %d\n", vui.last_hover );
+	if( e->type == VUI_EVENT_MOUSE_MOVE ) {
+		if( vui.last_hover != 0) {
+			if( vui.last_hover != e->H ) {
+				vui_common *hov_elem = vui_get_handle_data(vui.last_hover);
 
-			vui_common *hov_elem = vui_get_handle_data(vui.last_hover);
-			vui_event exit_event;
+				e->H = vui.last_hover;
+				e->type = VUI_EVENT_MOUSE_EXIT;
+				element = vui_get_handle_data(e->H);
+				strcpy( e->name, element->name );	
 
-			exit_event.H = vui.last_hover;
-			exit_event.type = VUI_EVENT_MOUSE_MOVE;
-
-			if( hov_elem->ops.default_on_mouse_exit != NULL ) {
-				hov_elem->ops.default_on_mouse_exit(&exit_event);
+				vui.last_hover = 0;
+			} else {
+				// This is a mouse move event, inside the control
+				// Do nothing
 			}
-
-			vui.last_hover = 0;
+		} else {
+			// This is a mouse enter event
+			e->type = VUI_EVENT_MOUSE_ENTER;
+			
+			vui.last_hover = e->H;
 		}
-	}
 
+	}
+	
 	switch( e->type ) {
 		case VUI_EVENT_MOUSE_MOVE:
 			handler_to_call = element->ops.default_on_mouse_move;
+			break;
+		case VUI_EVENT_MOUSE_EXIT:
+			handler_to_call = element->ops.default_on_mouse_exit;
+			break;
+		case VUI_EVENT_MOUSE_ENTER:
+			handler_to_call = element->ops.default_on_mouse_enter;
 			break;
 		case VUI_EVENT_MOUSE_DOWN:
 			handler_to_call = element->ops.default_on_mouse_down;
@@ -128,9 +147,9 @@ void vui_send_event( vui_handle H, vui_event *e ) {
 		handler_to_call(e);
 	} else {
 		// set hover if current thing can't set it?
-		if( e->type == VUI_EVENT_MOUSE_MOVE ) {
+		/* if( e->type == VUI_EVENT_MOUSE_MOVE ) {
 			vui.last_hover = e->H;
-		}
+		} */
 	}
 }
 
@@ -150,6 +169,9 @@ void vui_set_event_handler( vui_handle H, uint8_t event_type, void (*handler)(vu
 	}
 
 	switch( event_type ) {
+		case VUI_EVENT_ALL:
+			element->ops.event_handler = handler;
+			break;
 		case VUI_EVENT_MOUSE_DOWN:
 			element->ops.on_mouse_down = handler;
 			break;
@@ -176,4 +198,31 @@ bool vui_is_dispatcher( uint16_t type ) {
 	}
 
 	return false;
+}
+
+char *vui_event_type_to_string( uint16_t type ) {
+	switch( type ) {
+		case VUI_EVENT_MOUSE_UP:
+			return "Mouse Up";
+			break;
+		case VUI_EVENT_MOUSE_DOWN:
+			return "Mouse Down";
+			break;
+		case VUI_EVENT_KEY_UP:
+			return "Key Up";
+			break;
+		case VUI_EVENT_KEY_DOWN:
+			return "Key Down";
+			break;
+		case VUI_EVENT_MOUSE_ENTER:
+			return "Mouse Enter";
+			break;
+		case VUI_EVENT_MOUSE_EXIT:
+			return "Mouse Exit";
+			break;
+		default:
+			char str[50];
+			sprintf( str, "Unknown Event Type %d", type );
+			return str;
+	}
 }

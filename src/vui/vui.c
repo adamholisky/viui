@@ -32,10 +32,10 @@ void vui_init( uint32_t *fb_addr, uint16_t width, uint16_t height ) {
 	vui.active_theme.window_background = 0x00D6D6D6;
 	vui.active_theme.window_title_bar_background = 0x00363636;
 	vui.active_theme.window_title_bar_foreground = 0x00EAEAEA;
-	vui.active_theme.button_foreground = 0x00363636;
-	vui.active_theme.button_background = 0x00B6B6B6;
-	vui.active_theme.button_hover = 0x00B6B6B6;
-	vui.active_theme.button_active = 0x00757575;	
+	vui.active_theme.button_foreground = 0xD6D6D6;
+	vui.active_theme.button_background = 0x0056C1;	
+	vui.active_theme.button_hover = 0x0064E1;
+	vui.active_theme.button_active = 0x003476;	
 }
 
 /**
@@ -92,6 +92,30 @@ void vui_create_cleanup( vui_handle H ) {
  */
 uint16_t vui_get_type_from_master_list( vui_handle H ) {
 	return vui.handles[H].type;
+}
+
+/**
+ * @brief Sets the internal name of the element
+ * 
+ * @param H 
+ * @param name 
+ */
+void vui_handle_set_name( vui_handle H, char *name ) {
+	vui_common *vc = vui_get_handle_data(H);
+
+	strcpy(vc->name, name);
+}
+
+/**
+ * @brief Returns the name of the handle
+ * 
+ * @param H 
+ * @return char* 
+ */
+char *vui_handle_get_name( vui_handle H ) {
+	vui_common *vc = vui_get_handle_data(H);
+
+	return vc->name;
 }
 
 /**
@@ -213,10 +237,10 @@ void vui_sort_list_by_priority( vui_handle_list *list ) {
 	bool keep_going = true;
 	bool did_sort = false;
 
-	vdf( "Priority List Pre Sort:\n" );
+	//vdf( "Priority List Pre Sort:\n" );
 	for( vui_handle_list *hl = list; hl != NULL; hl = hl->next ) {
 		vui_common *vc = vui_get_handle_data(hl->H);
-		vdf( "   %d -> %08X\n", hl->H, vc->priority );
+		//vdf( "   %d -> %08X\n", hl->H, vc->priority );
 	}
 
 	if( list->H == 0 ) {
@@ -255,10 +279,10 @@ void vui_sort_list_by_priority( vui_handle_list *list ) {
 		}
 	} while( did_sort );
 
-	vdf( "Priority List Post Sort:\n" );
+	//vdf( "Priority List Post Sort:\n" );
 	for( vui_handle_list *hl = list; hl != NULL; hl = hl->next ) {
 		vui_common *vc = vui_get_handle_data(hl->H);
-		vdf( "   %d -> %08X\n", hl->H, vc->priority );
+		//vdf( "   %d -> %08X\n", hl->H, vc->priority );
 	}
 }
 
