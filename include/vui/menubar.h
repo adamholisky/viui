@@ -5,11 +5,7 @@ extern "C" {
 #endif
 
 #include "vui/vui.h"
-
-typedef struct {
-	char display_name[50];
-	
-} vui_menu;
+#include "vui/menu.h"
 
 typedef struct {
 	INSERT_VUI_COMMON
@@ -20,6 +16,7 @@ typedef struct {
 vui_handle vui_menubar_create( void );
 void vui_menubar_draw( vui_handle H );
 void vui_menubar_draw_from_struct( vui_menubar *menubar );
+void vui_menubar_add( vui_menubar *menubar, vui_menu *menu );
 
 #ifdef __cplusplus
 }

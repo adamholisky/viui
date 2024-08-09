@@ -40,3 +40,7 @@ void vui_menubar_draw( vui_handle H ) {
 void vui_menubar_draw_from_struct( vui_menubar *menubar ) {
 	vui_menubar_draw(0);
 }
+
+void vui_menubar_add( vui_menubar *menubar, vui_menu *menu ) {
+	
+}
