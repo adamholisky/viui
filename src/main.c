@@ -10,9 +10,9 @@ int main( int argc, char *argv[] ) {
 	printf( "VI Tests\n" );
 
 	//vit_bitmap_tests( argc, argv );
+	vit_dictionary_test( argc, argv );
 
-	vit_gui_test();
-
+	//vit_gui_test();
 
 	printf( "Done.\n" );
 

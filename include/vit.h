@@ -25,6 +25,8 @@ extern "C" {
 #endif
 
 #include "lib/bitmap.h"
+#include "lib/dictionary.h"
+#include "lib/hash.h"
 #include "vui/vui.h"
 
 /**************************************/
