@@ -207,7 +207,7 @@ void vui_console_put_char_at( vui_console *con, uint8_t c, uint16_t row, uint16_
 				}
 
 				vui_draw_char_with_color( c, con->current_pixel_x, con->current_pixel_y, fg, bg, con->font, true );
-				//vui_refresh_rect( con->current_pixel_x, con->current_pixel_y, con->char_width, con->char_height );
+				vui_refresh_rect( con->current_pixel_x, con->current_pixel_y, con->char_width, con->char_height );
 
 				con->current_col++;
 				con->current_pixel_x = con->current_pixel_x + con->char_width;

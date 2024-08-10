@@ -345,6 +345,8 @@ vui_theme *vui_get_active_theme( void ) {
  * 
  */
 void vui_refresh( void ) {
+	vdf( "Refreshed entire ui.\n" );
+
 	memcpy( vui.fb, vui.buffer, 4 * vui.width * vui.height );
 
 	#ifndef VI_ENV_OS
@@ -372,6 +374,8 @@ void vui_refresh_handle( vui_handle H ) {
  * @param height height in pixels
  */
 void vui_refresh_rect( uint16_t x, uint16_t y, uint16_t width, uint16_t height ) {
+	//vdf( "Refreshed: x: %d    y: %d    width: %d    height: %d\n", x, y, width, height );
+
 	uint32_t offset_x = x;
 	uint32_t offset_y = y * vui.pitch/4;
 
