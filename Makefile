@@ -81,6 +81,6 @@ $(EXE_NAME): $(OBJECTS_C)
 build/%.o: %.c
 	@$(eval MF_ACTION := $(COLOR_BLUE)Building $*.c$(COLOR_END))
 	@echo -n -e $(MF_COMPILE) $(MF_ACTION)
-	@$(CC) $(CFLAGS) -fdiagnostics-color=always -c $< -o $(BUILD_DIR_NAME)/$*.o &> /tmp/MF_OUT || (echo -e $(MF_FAIL) $(MF_ACTION) && cat /tmp/MF_OUT && exit 1)
+	@$(CC) $(CFLAGS) $(DEFINES) -fdiagnostics-color=always -c $< -o $(BUILD_DIR_NAME)/$*.o &> /tmp/MF_OUT || (echo -e $(MF_FAIL) $(MF_ACTION) && cat /tmp/MF_OUT && exit 1)
 	@echo -e $(MF_SUCCESS) $(MF_ACTION)
 

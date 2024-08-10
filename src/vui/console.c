@@ -128,7 +128,7 @@ void vui_console_draw_from_struct( vui_console *con ) {
 					//vui_draw_rect( x, y, con->char_width, con->char_height, bg );
 				}
 
-				vui_draw_char_with_color( c, x, y, fg, bg, con->font, true );
+				vui_draw_char( c, x, y, fg, bg, con->font, VUI_DRAW_FLAGS_NONE );
 
 				x = x + con->char_width;
 			}
@@ -206,8 +206,8 @@ void vui_console_put_char_at( vui_console *con, uint8_t c, uint16_t row, uint16_
 					//vui_draw_rect( con->current_pixel_x, con->current_pixel_y, con->char_width, con->char_height, bg );
 				}
 
-				vui_draw_char_with_color( c, con->current_pixel_x, con->current_pixel_y, fg, bg, con->font, true );
-				vui_refresh_rect( con->current_pixel_x, con->current_pixel_y, con->char_width, con->char_height );
+				vui_draw_char( c, con->current_pixel_x, con->current_pixel_y, fg, bg, con->font, VUI_DRAW_FLAGS_IMMEDIATE );
+				//vui_refresh_rect( con->current_pixel_x, con->current_pixel_y, con->char_width, con->char_height );
 
 				con->current_col++;
 				con->current_pixel_x = con->current_pixel_x + con->char_width;
@@ -219,7 +219,7 @@ void vui_console_put_char_at( vui_console *con, uint8_t c, uint16_t row, uint16_
 	if( con->show_cursor == true ) {
 		// Clear the previous cursor if a new line
 		if( c == '\n' ) {
-			vui_draw_char_with_color( ' ', con->current_pixel_x, con->current_pixel_y, con->fg_color, con->bg_color, con->font, true );
+			vui_draw_char( ' ', con->current_pixel_x, con->current_pixel_y, con->fg_color, con->bg_color, con->font, VUI_DRAW_FLAGS_NONE );
 			//vui_refresh_rect( con->current_pixel_x, con->current_pixel_y, con->char_width, con->char_height );
 		}
 
@@ -463,7 +463,7 @@ void vui_console_put_string_at( vui_console *con, char *str, uint16_t row, uint1
 		vui_console_put_char_at( con, *str, con->current_row, con->current_col );
 	}
 
-	vui_console_draw_from_struct( con );
+	//vui_console_draw_from_struct( con );
 }
 
 /**
@@ -565,11 +565,11 @@ void vui_console_do_backspace( vui_console *con ) {
 
 	con->current_col--;
 	con->current_pixel_x = con->current_pixel_x - con->char_width;
-	vui_draw_char_with_color( ' ', con->current_pixel_x, con->current_pixel_y, con->fg_color, con->bg_color, con->font, true );
+	vui_draw_char( ' ', con->current_pixel_x, con->current_pixel_y, con->fg_color, con->bg_color, con->font, VUI_DRAW_FLAGS_NONE );
 	vui_refresh_rect( con->current_pixel_x, con->current_pixel_y, con->char_width, con->char_height );
 
 	if( cursor_visibility == true ) {
-		vui_draw_char_with_color( ' ', con->current_pixel_x, con->current_pixel_y, con->fg_color, con->bg_color, con->font, true );
+		vui_draw_char( ' ', con->current_pixel_x, con->current_pixel_y, con->fg_color, con->bg_color, con->font, VUI_DRAW_FLAGS_NONE );
 		vui_refresh_rect( con->current_pixel_x, con->current_pixel_y, con->char_width, con->char_height );
 	}
 
@@ -586,7 +586,7 @@ void vui_console_do_backspace( vui_console *con ) {
  */
 void vui_console_update_cursor( vui_console *con ) {
 	if( con->show_cursor == true ) {
-		vui_draw_char_with_color( 0xDB, con->current_pixel_x, con->current_pixel_y, con->fg_color, con->bg_color, con->font, true );
+		vui_draw_char( 0xDB, con->current_pixel_x, con->current_pixel_y, con->fg_color, con->bg_color, con->font, VUI_DRAW_FLAGS_NONE );
 		vui_refresh_rect( con->current_pixel_x, con->current_pixel_y, con->char_width, con->char_height );
 	}
 }
@@ -608,7 +608,7 @@ void vui_console_blink_cursor( vui_console *con ) {
 			con->blink_hidden = true;
 		}
 
-		vui_draw_char_with_color( c, con->current_pixel_x, con->current_pixel_y, con->fg_color, con->bg_color, con->font, true );
+		vui_draw_char( c, con->current_pixel_x, con->current_pixel_y, con->fg_color, con->bg_color, con->font, VUI_DRAW_FLAGS_NONE );
 		vui_refresh_rect( con->current_pixel_x, con->current_pixel_y, con->char_width, con->char_height );
 	}
 }

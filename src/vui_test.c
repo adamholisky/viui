@@ -36,7 +36,7 @@ void vui_main_test_loop( void ) {
 	vui_handle_set_name( menubar, "main_menubar" );
 
 	vui_handle desktop = vui_desktop_create( 0, 25, vui.width, vui.height - 25, VUI_DESKTOP_FLAG_NONE );
-	vui_handle smooth_text = vui_label_create( 5, 768 - 25, "Versions OS 6.0.0.1", VUI_LABEL_FLAG_NONE, desktop );
+	vui_handle smooth_text = vui_label_create( 5, 768 - 25, "Versions OS 6.0.0.1", VUI_LABEL_FLAG_TRANSPARENT, desktop );
 	vui_label_set_color( smooth_text, COLOR_RGB_WHITE, theme->window_background );
 	vui_handle_set_name( desktop, "desktop" );
 
