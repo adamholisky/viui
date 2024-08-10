@@ -19,6 +19,7 @@ typedef struct {
 	uint32_t hash;
 	uint32_t modified;
 
+	void *prev;
 	void *next;
 } vi_dictionary_item;
 
@@ -32,6 +33,7 @@ typedef struct {
 typedef void (*vi_dictionary_for_each_callback)(char *, void *);
 
 int vit_dictionary_test( int argc, char *argv[] );
+void vit_dict_test_callback( char *key, void *value );
 
 int vi_dictionary_create( vi_dictionary *d );
 int vi_dictionary_destroy( vi_dictionary *d );
@@ -39,14 +41,23 @@ int vi_dictionary_add( vi_dictionary *d, char *key, void *value );
 vi_dictionary_item *vi_dictionary_get_item( vi_dictionary *d, char *key );
 void *vi_dictionary_get_value( vi_dictionary *d, char *key );
 int vi_dictionary_remove_key( vi_dictionary *d, char *key );
-bool vi_dictionary_has_key( vi_dictionary *d, void *value );
+bool vi_dictionary_has_key( vi_dictionary *d, char *key );
 int vi_dictionary_for_each( vi_dictionary *d, vi_dictionary_for_each_callback callback );
-
 void vi_dictionary_dump_diagnostic( vi_dictionary *d );
 
-// String specific
+/************************************************/
+/* String Varient                               */
+/************************************************/
+typedef void (*vi_dictionary_string_for_each_callback)(char *, char *);
 
-// uint64_t specific
+int vi_dictionary_string_create( vi_dictionary *d );
+int vi_dictionary_string_destroy( vi_dictionary *d );
+int vi_dictionary_string_add( vi_dictionary *d, char *key, char *value );
+vi_dictionary_item *vi_dictionary_string_get_item( vi_dictionary *d, char *key );
+char *vi_dictionary_string_get_value( vi_dictionary *d, char *key );
+int vi_dictionary_string_remove_key( vi_dictionary *d, char *key );
+bool vi_dictionary_string_has_key( vi_dictionary *d, char *key );
+int vi_dictionary_string_for_each( vi_dictionary *d, vi_dictionary_string_for_each_callback callback );
 
 #ifdef __cplusplus
 }
