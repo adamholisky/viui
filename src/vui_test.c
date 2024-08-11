@@ -30,6 +30,15 @@ void vui_main_test_loop( void ) {
 	vui_font_load( VUI_FONT_TYPE_PSF, "Zap VGA", "zap-ext-vga16.psf" );
 	#endif
 
+/* 	vui_font_create_aa_mask( vui_font_get_font("Zap VGA"), 'V' );
+	vui_font_create_aa_mask( vui_font_get_font("Zap VGA"), 'e' );
+	vui_font_create_aa_mask( vui_font_get_font("Zap VGA"), 'r' );
+	vui_font_create_aa_mask( vui_font_get_font("Zap VGA"), 's' );
+	vui_font_create_aa_mask( vui_font_get_font("Zap VGA"), 'i' );
+	vui_font_create_aa_mask( vui_font_get_font("Zap VGA"), 'o' );
+	vui_font_create_aa_mask( vui_font_get_font("Zap VGA"), 'n' );
+	vui_font_create_aa_mask( vui_font_get_font("Zap VGA"), '6' ); */
+
 	vui_draw_string( "Version", 10, 10, COLOR_RGB_BLACK, COLOR_RGB_WHITE, vui_font_get_font("Zap VGA"), VUI_DRAW_FLAGS_IMMEDIATE );
 	
 

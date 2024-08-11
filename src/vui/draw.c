@@ -215,71 +215,35 @@ void vui_draw_char( uint16_t char_num, uint16_t x, uint16_t y, uint32_t fg, uint
 		}
 	}
 
-	smoothing = false;
-
 	vdf( "printing: %c 0x%04X (%d).\n", font->bitmaps[index].num, font->bitmaps[index].num, font->bitmaps[index].num);
 	for( int i = 0; i < font->info.height; i++ ) {
 		uint32_t *loc = vui.buffer + ((y+i) * (vui.pitch / 4)) + x;
 		uint32_t *loc_imm = vui.fb + ((y+i) * (vui.pitch / 4)) + x;
 		
 		//vdf( "Row: %d == %X\n", i, font->bitmaps[index].pixel_row[i] );
-		vdf( "\"" );
+		//vdf( "\"" );
 		for( int j = 0; j != font->info.width; j++ ) {
 			if( ((font->bitmaps[index].pixel_row[i] >> j) & 0x1) ) {
-				vdf( "*" );
+				//vdf( "*" );
 				*(loc + j) = fg;
 				if( flags & VUI_DRAW_FLAGS_IMMEDIATE ) { *(loc_imm + j) = fg; }
 
-				if( smoothing ){
-					/**
-					 * X!
-					 * !E
-					 */
-					if( (i + 1 <= font->info.height) && (j-1 >= 0) ) { // 1 down and 1 right can happen
-						//debugf( "1 Can happen.\n" );
-						if( ((font->bitmaps[index].pixel_row[i + 1] >> (j - 1)) & 0x1) ) { // if it exists
-							if( !((font->bitmaps[index].pixel_row[i + 1] >> j) & 0x1) ) {  // if 1 down from current j does not exit
-								//vdf( "AA apply!\n" );
-								*(loc + (vui.pitch / 4) + j) = smoothing_color;// then fill it
-								if( flags & VUI_DRAW_FLAGS_IMMEDIATE ) { *(loc_imm + (vui.pitch / 4) + j) = smoothing_color; }
-							}
-
-							if( !((font->bitmaps[index].pixel_row[i] >> (j - 1)) & 0x1)) {  // if 1 over from current j does not exit
-								//debugf( "AA apply!\n" );
-								*(loc + j + 1) = smoothing_color;// then fill it
-								if( flags & VUI_DRAW_FLAGS_IMMEDIATE ) { *(loc_imm + j + 1) = smoothing_color;  }
-							}
-						}
-
-					}
-
-					/**
-					 * !X
-					 * E!
-					 */
-					if( (i + 1 <= font->info.height) && (j - 1 <= font->info.width) ) { // 1 down and 1 left can happen
-						//vdf( "2 Can happen.\n" );
-						if( ((font->bitmaps[index].pixel_row[i + 1] >> (j+1)) & 0x1) ) { // if it exists
-							if( !((font->bitmaps[index].pixel_row[i + 1] >> j) & 0x1) ) {  // if 1 down from current j does not exit
-								//vdf( "smoothing 2a\n" );
-								*(loc + (vui.pitch / 4) + j) = smoothing_color;// then fill it
-								if( flags & VUI_DRAW_FLAGS_IMMEDIATE ) { *(loc + (vui.pitch / 4) + j) = smoothing_color; }
-							}
-
-							if( !((font->bitmaps[index].pixel_row[i] >> (j + 1)) & 0x1) ) {  // if 1 across from current j does not exit
-								//vdf( "smoothing 2b\n" );
-								*(loc + (16 - j - 1)) = smoothing_color;// then fill it
-								if( flags & VUI_DRAW_FLAGS_IMMEDIATE ) { *(loc + (16 - j - 1)) = smoothing_color; }
-							}
-						}
-
-					}
-				}
+				
 			} else {
-				vdf( " " );
+				//vdf( " " );
+			}
+
+			if( smoothing ){
+				if( ((font->aa_mask[index].pixel_row[i] >> j) & 0x1) ) {
+					//vdf( "*" );
+					*(loc + j) = smoothing_color;
+					if( flags & VUI_DRAW_FLAGS_IMMEDIATE ) { *(loc_imm + j) = smoothing_color; }
+
+					
+				}
 			}
 		}
-		vdf( "\"\n" );
+		//vdf( "\"\n" );
 	}
 
 	#ifdef VI_ENV_DEV
@@ -342,66 +306,3 @@ void vui_move_rect( uint32_t dest_x, uint32_t dest_y, uint32_t dest_w, uint32_t 
 
 
 
-void vui_render_aa_mask( vui_font *font, uint8_t char_num ) {
-
-// 1. Get the bitmap
-
-// 2. Go through the bitmap, looking for each pattern in 2x2 chunks
-
-/*
-* - Pixel
-_ - Empty
-. - AA point
- 
-Patterns:                           Pixel Numbers:
-
-*_  **  *_  *_  **  **  **          12
-__  __  *_  _*  *_  _*  **          34
-
-_*  _*  _*   _*
-__  *_  _*   **
-
-__  __  __
-*_  _*  **
-
-__
-_*
-
-
-AA Applied:                         AA Only Patterns w/Pix number:
-
-*_  **  *_  *.  **  **  **          *.  **  **    true, false, false, true    true, true, true, false    true, true, false, true
-__  __  *_  .*  *.  .*  **          .*  *.  .*
-
-_*  .*  _*   .*                     .*  .*        false, true, true, false    false, true, true, true
-__  *.  _*   **                     *.  **
-
-__  __  __
-*_  _*  **
-
-__
-_*
-
-pix1_t/f = true
-pix2_t/f = false
-pix3_t/f = false
-pix4_t/f = true
-
-for( int top_line = 0; top_line < font.width; top_line++ ) {
-	for( int col = font.width; col < font_width; col-- ) {
-		if( bitmap[top_line][col] == PIX1_T/F && bitmap[top_line][col - 1] == PIX2_T/F ) {
-			if( bitmap[top_line+1][col] == PIX3_T/F && bitmap[top_line][col - 1] == PIX4_T/F ) {
-				if pix1 == empty then fill with aa color
-				if pix2 == empty then fill with aa color
-				if pix3 == empty then fill with aa color
-				if pix4 == empty then fill with aa color
-			}
-		}
-	}
-}
-
-*/
-
-
-
-}

@@ -61,6 +61,10 @@ void vui_font_load( uint8_t type, char *name, char *font_path ) {
 		default:
 			vdf( "Font Load: Unknown type. Got: %d.\n", type );
 	}
+
+	for( int i = 0; i < font_data_to_use->info.num_glyphs; i++ ) {
+		vui_font_create_aa_mask( font_data_to_use, i );
+	}
 }
 
 /**
@@ -189,6 +193,7 @@ bool vui_font_load_psf( vui_font *font ) {
 	}
 
 	font->bitmaps = vmalloc( sizeof(font_bitmap) * font->info.num_glyphs);
+	font->aa_mask = vmalloc( sizeof(font_bitmap) * font->info.num_glyphs);
 
 	
 
@@ -259,6 +264,132 @@ bool vui_font_load_psf( vui_font *font ) {
 	}
 	
     return true;
+}
+
+#define font_get_pixel(charnum,row,col) ((font->bitmaps[charnum].pixel_row[row] >> col) & 1)
+#define font_pixelrow(charnum,row) font->bitmaps[charnum].pixel_row[row]
+#define font_aapixelrow(charnum,row) font->aa_mask[charnum].pixel_row[row]
+#define font_aapixelrow(charnum,row) font->aa_mask[charnum].pixel_row[row]
+#define font_set_aapixel(charnum,row,col) font_aapixelrow(charnum,row) = font_aapixelrow(charnum,row) | (1 << col) 
+
+void vui_font_create_aa_mask( vui_font *font, uint16_t char_num ) {
+	if( font == NULL ) {
+		return;
+	}
+
+	bool patterns[6][4] = {
+		{true, false, false, true},
+		{true, true, true, false},
+		{true, true, false, true},
+		{false, true, true, false},
+		{false, true, true, true},
+		{true, false, true, true}
+	};
+
+	// Loop through each pattern
+	for( int pattern_num = 0; pattern_num < 6; pattern_num++ ) {
+		//vdf( "Pattern: %d\n", pattern_num );
+
+		// Look at each two lines (by the top line), stop when it's the height - 1
+		for( uint16_t top_line = 0; top_line < (font->info.height - 1); top_line++ ) {
+			//vdf( "Top Line: %d\n", top_line );
+
+			// Look at each column progressively from left to right, col 2 is the last one
+			for( uint16_t col = font->info.width - 1; col > 0; col-- ) {
+				//vdf( "Col %d  ", col );
+
+				if( font_get_pixel(char_num, top_line, col) == patterns[pattern_num][0] &&
+					font_get_pixel(char_num, top_line, col - 1) == patterns[pattern_num][1] &&
+					font_get_pixel(char_num, top_line + 1, col) == patterns[pattern_num][2] &&
+					font_get_pixel(char_num, top_line + 1, col - 1) == patterns[pattern_num][3]
+				) {
+					if( font_get_pixel(char_num, top_line, col) == 0 ) { font_set_aapixel(char_num, top_line, col); }
+					if( font_get_pixel(char_num, top_line, col - 1) == 0 ) { font_set_aapixel(char_num, top_line, col - 1); }
+					if( font_get_pixel(char_num, top_line + 1, col) == 0 ) { font_set_aapixel(char_num, top_line + 1, col); }
+					if( font_get_pixel(char_num, top_line + 1, col - 1) == 0 ) { font_set_aapixel(char_num, top_line + 1, col - 1); }
+				}
+			}
+
+			//vdf( "\n" );
+		}
+	}
+
+	// Print the pattern
+	/* for( uint16_t i = 0; i < font->info.height; i++ ) {
+		vdf( "row: %02d \"", i );
+
+		for( int j = font->info.width - 1; j >= 0; j-- ) {			
+			if( (font->bitmaps[char_num].pixel_row[i] >> j & 1) == 1 ) {
+				vdf( "*" );
+			} else if( (font->aa_mask[char_num].pixel_row[i] >> j & 1) == 1  ) {
+				vdf( "." );
+			} else {
+				vdf( " " );
+			}	
+
+			if( ((font->bitmaps[char_num].pixel_row[i] >> j & 1) == 1 ) && ((font->aa_mask[char_num].pixel_row[i] >> j & 1) == 1 ) ) { vdf( "COLLISON! i = %d, j = %d\n", i, j ); }	
+		}
+		vdf( "\"\n" );
+	} */
+
+// 2. Go through the bitmap, looking for each pattern in 2x2 chunks
+
+/*
+* - Pixel
+_ - Empty
+. - AA point
+ 
+Patterns:                           Pixel Numbers:
+
+*_  **  *_  *_  **  **  **          12
+__  __  *_  _*  *_  _*  **          34
+
+_*  _*  _*   _*
+__  *_  _*   **
+
+__  __  __
+*_  _*  **
+
+__
+_*
+
+
+AA Applied:                         AA Only Patterns w/Pix number:
+
+*_  **  *_  *.  **  **  **  *.       *.  **  **    true, false, false, true    true, true, true, false    true, true, false, true
+__  __  *_  .*  *.  .*  **  **       .*  *.  .*
+
+_*  .*  _*   .*                      .*  .*  *.      false, true, true, false    false, true, true, true    true, false, true, true
+__  *.  _*   **                      *.  **  **
+
+__  __  __
+*_  _*  **
+
+__
+_*
+
+pix1_t/f = true
+pix2_t/f = false
+pix3_t/f = false
+pix4_t/f = true
+
+for( int top_line = 0; top_line < font.width; top_line++ ) {
+	for( int col = font.width; col < font_width; col-- ) {
+		if( bitmap[top_line][col] == PIX1_T/F && bitmap[top_line][col - 1] == PIX2_T/F ) {
+			if( bitmap[top_line+1][col] == PIX3_T/F && bitmap[top_line][col - 1] == PIX4_T/F ) {
+				if pix1 == empty then fill with aa color
+				if pix2 == empty then fill with aa color
+				if pix3 == empty then fill with aa color
+				if pix4 == empty then fill with aa color
+			}
+		}
+	}
+}
+
+*/
+
+
+
 }
 
 /**
