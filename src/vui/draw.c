@@ -339,3 +339,69 @@ void vui_move_rect( uint32_t dest_x, uint32_t dest_y, uint32_t dest_w, uint32_t 
 		for(; mem_size != 0; mem_size--) *mem_dest32++ = *mem_src32++;
 	}
 }
+
+
+
+void vui_render_aa_mask( vui_font *font, uint8_t char_num ) {
+
+// 1. Get the bitmap
+
+// 2. Go through the bitmap, looking for each pattern in 2x2 chunks
+
+/*
+* - Pixel
+_ - Empty
+. - AA point
+ 
+Patterns:                           Pixel Numbers:
+
+*_  **  *_  *_  **  **  **          12
+__  __  *_  _*  *_  _*  **          34
+
+_*  _*  _*   _*
+__  *_  _*   **
+
+__  __  __
+*_  _*  **
+
+__
+_*
+
+
+AA Applied:                         AA Only Patterns w/Pix number:
+
+*_  **  *_  *.  **  **  **          *.  **  **    true, false, false, true    true, true, true, false    true, true, false, true
+__  __  *_  .*  *.  .*  **          .*  *.  .*
+
+_*  .*  _*   .*                     .*  .*        false, true, true, false    false, true, true, true
+__  *.  _*   **                     *.  **
+
+__  __  __
+*_  _*  **
+
+__
+_*
+
+pix1_t/f = true
+pix2_t/f = false
+pix3_t/f = false
+pix4_t/f = true
+
+for( int top_line = 0; top_line < font.width; top_line++ ) {
+	for( int col = font.width; col < font_width; col-- ) {
+		if( bitmap[top_line][col] == PIX1_T/F && bitmap[top_line][col - 1] == PIX2_T/F ) {
+			if( bitmap[top_line+1][col] == PIX3_T/F && bitmap[top_line][col - 1] == PIX4_T/F ) {
+				if pix1 == empty then fill with aa color
+				if pix2 == empty then fill with aa color
+				if pix3 == empty then fill with aa color
+				if pix4 == empty then fill with aa color
+			}
+		}
+	}
+}
+
+*/
+
+
+
+}
