@@ -111,6 +111,7 @@ void vui_console_draw_from_struct( vui_console *con ) {
 	
 	for( int i = 0; i < con->num_rows; i++ ) {
 		if( con->rows[i].dirty || con->redraw_window ) {
+			//vdf( "dirty -- row: %d\n", i );
 			uint16_t x = con->text_area_x;
 			uint16_t y = con->text_area_y + (con->char_height * i);
 
@@ -480,7 +481,7 @@ void vui_console_scroll_up( vui_console *con, bool set_current_row_col ) {
 		memcpy( con->rows[i].color_set_fg, con->rows[i + 1].color_set_fg, sizeof(uint8_t) * con->num_cols );
 		memcpy( con->rows[i].color_set_bg, con->rows[i + 1].color_set_bg, sizeof(uint8_t) * con->num_cols );
 
-		con->rows[i].dirty = true;
+		con->rows[i].dirty = false;
 	}
 
 	memset( con->rows[con->num_rows - 1].buff, 0, sizeof(char) * (con->num_cols) );
@@ -490,14 +491,14 @@ void vui_console_scroll_up( vui_console *con, bool set_current_row_col ) {
 	memset( con->rows[con->num_rows - 1].color_bg, 0, sizeof(uint32_t) * (con->num_cols) );
 
 
-/* 	// Move the console text up one line
+	// Move the console text up one line
 	vui_move_rect(  con->text_area_x, con->text_area_y, 
 					con->text_area_width, con->text_area_height - con->char_height,
 					con->text_area_x, con->text_area_y + con->char_height, 
 					con->text_area_width, con->text_area_height - con->char_height );
 	
 	// Fill in the last line to blank
-	vui_draw_rect(  con->text_area_x, con->text_area_y + (con->num_rows - 1) * con->char_height, con->text_area_width, con->char_height, con->bg_color ); */
+	vui_draw_rect(  con->text_area_x, con->text_area_y + (con->num_rows - 1) * con->char_height, con->text_area_width, con->char_height, con->bg_color );
 
 	// If we're asked to set row, col to the last line, do so
 	if( set_current_row_col ) {
@@ -506,6 +507,8 @@ void vui_console_scroll_up( vui_console *con, bool set_current_row_col ) {
 		con->current_col = 1;
 		con->current_row = con->num_rows;
 	}
+
+	vui_console_draw_from_struct( con );
 }
 
 /**

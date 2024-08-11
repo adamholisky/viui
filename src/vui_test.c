@@ -30,6 +30,9 @@ void vui_main_test_loop( void ) {
 	vui_font_load( VUI_FONT_TYPE_PSF, "Zap VGA", "zap-ext-vga16.psf" );
 	#endif
 
+	vui_draw_string( "Version", 10, 10, COLOR_RGB_BLACK, COLOR_RGB_WHITE, vui_font_get_font("Zap VGA"), VUI_DRAW_FLAGS_IMMEDIATE );
+	
+
 	vui_theme *theme = vui_get_active_theme();
 
 	vui_handle menubar = vui_menubar_create();
