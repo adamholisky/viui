@@ -10,6 +10,7 @@
 #include "vui/console.h"
 #include "vui/button.h"
 #include <vui/menubar.h>
+#include "vui/schrift.h"
 
 vui_handle main_con;
 
@@ -27,7 +28,9 @@ void vui_main_test_loop( void ) {
 	vui_font_load( VUI_FONT_TYPE_PSF, "Zap VGA", "/usr/share/fonts/zap-ext-vga16.psf" );
 	#else
 	vui_font_load( VUI_FONT_TYPE_PSF, "Zap Light", "zap-light20.psf" );
-	vui_font_load( VUI_FONT_TYPE_PSF, "Zap VGA", "zap-ext-vga16.psf" );
+	vui_font_load( VUI_FONT_TYPE_PSF, "Zap VGA", "zap-ext-vga16.psf" );				
+	vui_font_load( VUI_FONT_TYPE_TTF, "Fira", "fira_code.ttf" );
+
 	#endif
 
 /* 	vui_font_create_aa_mask( vui_font_get_font("Zap VGA"), 'V' );
@@ -70,6 +73,13 @@ void vui_main_test_loop( void ) {
 	example_create_with_layout_engine();
 
 	vui_console_tests( main_con );
+
+
+
+/* 	font_draw_ttf_char( vui_font_get_font("Fira"), 'A', 10, 10, 0x00FF00, COLOR_RGB_WHITE );
+	font_draw_ttf_char( vui_font_get_font("Fira"), 'd', 50, 10, COLOR_RGB_BLACK, COLOR_RGB_WHITE ); */
+	vui_refresh();
+	
 }
 
 void example_create_with_layout_engine( void ) {

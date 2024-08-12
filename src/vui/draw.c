@@ -215,7 +215,7 @@ void vui_draw_char( uint16_t char_num, uint16_t x, uint16_t y, uint32_t fg, uint
 		}
 	}
 
-	vdf( "printing: %c 0x%04X (%d).\n", font->bitmaps[index].num, font->bitmaps[index].num, font->bitmaps[index].num);
+	//vdf( "printing: %c 0x%04X (%d).\n", font->bitmaps[index].num, font->bitmaps[index].num, font->bitmaps[index].num);
 	for( int i = 0; i < font->info.height; i++ ) {
 		uint32_t *loc = vui.buffer + ((y+i) * (vui.pitch / 4)) + x;
 		uint32_t *loc_imm = vui.fb + ((y+i) * (vui.pitch / 4)) + x;
@@ -304,5 +304,66 @@ void vui_move_rect( uint32_t dest_x, uint32_t dest_y, uint32_t dest_w, uint32_t 
 	}
 }
 
+void vui_draw_char_ttf( uint32_t char_num, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, uint64_t flags ) {
+	vdf( "draw: %X (%c)\n", char_num, (char)char_num );
 
+	for( int i = 0; i < font->info.height; i++ ) {
+		uint32_t y_offset = (font->size - font->ttf_bitmaps[(uint8_t)char_num].y_offset);
 
+		uint32_t pix_row = i;
+		if( y_offset != 0 && i >= y_offset) {
+			pix_row = i - y_offset;
+			//vdf( "%c: %d ->  %d ", (char)char_num, y_offset, pix_row );
+		}
+
+		uint32_t *loc = vui.buffer + ((y+i) * (vui.pitch / 4)) + x;
+		uint32_t *loc_imm = vui.fb + ((y+i) * (vui.pitch / 4)) + x;
+		
+		//vdf( "Row: %d == %X\n", i, font->bitmaps[index].pixel_row[i] );
+		//vdf( "\"" );
+		for( int j = 0; j != font->info.width; j++ ) {
+			// handle the y-offset
+			if( i < y_offset ) {
+				//vdf( "offset %d (max: %d)\n", i, abs() );
+
+				if( !(flags & VUI_DRAW_FLAGS_TRANSPARENT) ) {
+					*(loc + j) = bg;
+					if( flags & VUI_DRAW_FLAGS_IMMEDIATE ) { *(loc_imm + j) = bg; }
+				}
+				continue;
+			}
+
+			// render as normal
+			if( font->ttf_bitmaps[(uint8_t)char_num].pixel[(pix_row * font->size) + j] ) {
+				//vdf( "*" );
+
+				float adjust = font->ttf_bitmaps[(uint8_t)char_num].pixel[(pix_row * font->size) + j];
+
+				uint8_t red_bg = ((bg & 0x00FF0000) >> 16);
+				uint8_t red = ((fg & 0x00FF0000) >> 16);
+				red = (uint8_t)( (red * (adjust / 0xFF)) + (((1 - (adjust / 0xFF))) * red_bg));
+
+				uint8_t green_bg = (bg & 0x0000FF00) >> 8;
+				uint8_t green = (fg & 0x0000FF00) >> 8;
+				green = (uint8_t)( (green * (adjust / 0xFF)) + (((1 - (adjust / 0xFF))) * green_bg));
+				
+				uint8_t blue_bg = (bg & 0x000000FF);
+				uint8_t blue = (fg & 0x000000FF);
+				blue = (uint8_t)( (blue * (adjust / 0xFF)) + (((1 - (adjust / 0xFF))) * blue_bg));
+
+				uint32_t color = (red << 16) | (green << 8) | (blue);
+
+				*(loc + j) = color;
+				if( flags & VUI_DRAW_FLAGS_IMMEDIATE ) { *(loc_imm + j) = color; }
+
+				
+			} else {
+				if( !(flags & VUI_DRAW_FLAGS_TRANSPARENT) ) {
+					*(loc + j) = bg;
+					if( flags & VUI_DRAW_FLAGS_IMMEDIATE ) { *(loc_imm + j) = bg; }
+				}
+			}
+		}
+		//vdf( "\"\n" );
+	}
+}
