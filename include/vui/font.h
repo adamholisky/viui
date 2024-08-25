@@ -5,6 +5,7 @@ extern "C" {
 #endif
 
 #include "vui/vui.h"
+#include "vui/schrift.h"
 
 #define VUI_FONT_TYPE_PSF 1
 #define VUI_FONT_TYPE_BDF 2
@@ -31,6 +32,10 @@ typedef struct {
     uint32_t unicode_id;
     uint32_t advance;
     uint32_t y_offset;
+    uint32_t x_offset;
+
+    uint16_t width;
+    uint16_t height;
 
     uint8_t *pixel;
 } font_ttf_bitmap;
@@ -46,6 +51,7 @@ typedef struct {
     font_ttf_bitmap *ttf_bitmaps;
     bool is_mono;
 
+    SFT sft;
 
 
     void *next;

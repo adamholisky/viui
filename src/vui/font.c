@@ -143,38 +143,33 @@ void vui_font_load_ttf( vui_font *font ) {
 		font->ttf_bitmaps[i].pixel = vmalloc( 2 * font->size * font->size ); 
 	}
 
-	SFT sft = {
-		.xScale = font->size,
-		.yScale = font->size,
-		.flags = SFT_DOWNWARD_Y
-	};
+	font->sft.xScale = font->size;
+	font->sft.yScale = font->size,
+	font->sft.flags = SFT_DOWNWARD_Y;
 
-	sft.font = sft_loadfile("./fira_code.ttf");
+	//sft.font = sft_loadfile("./fira_code.ttf");
+	font->sft.font = sft_loadfile( font->info.path );
 
-	if( sft.font == NULL ) {
+	if( font->sft.font == NULL ) {
 		vdf( "sft font failed to load" );
 	}
 
 	SFT_LMetrics line_metrics;
-	sft_lmetrics( &sft, &line_metrics );
+	sft_lmetrics( &font->sft, &line_metrics );
 	vdf( "asc: %f    dsc: %f    lineGap: %f\n", line_metrics.ascender, line_metrics.descender, line_metrics.lineGap );
 	font->info.height = 13;
 
 	SFT_Glyph test_glyph;
-	sft_lookup( &sft, 'V', &test_glyph );
+	sft_lookup( &font->sft, 'V', &test_glyph );
 	SFT_GMetrics glyph_metrics;
-	sft_gmetrics( &sft, test_glyph, &glyph_metrics );
+	sft_gmetrics( &font->sft, test_glyph, &glyph_metrics );
 	font->info.width = glyph_metrics.advanceWidth;
 
 	vdf( "%f\n", glyph_metrics.advanceWidth );
 
 
 	SFT_Glyph v;
-	SFT_Image img = {
-		.pixels = vmalloc(2 * font->size * font->size),
-		.width = font->size,
-		.height = font->size
-	};
+	
 
 /* 	memset( img.pixels, 0, 2 * 20 * 20 );
 	vdf( "lookup result: %d\n", sft_lookup( &sft, 0xf0e1e, &v ) );
@@ -187,18 +182,27 @@ void vui_font_load_ttf( vui_font *font ) {
 	memcpy( font->ttf_bitmaps[1].pixel, img.pixels, 2 * 20 * 20 ); */
 
 	for( int i = 0; i < 256; i++ ) {
-		memset( img.pixels, 0, 2 * font->size * font->size );
-		
-		sft_lookup( &sft, dos_code_page[i], &v );
+		sft_lookup( &font->sft, dos_code_page[i], &v );
 		
 		SFT_GMetrics glyph_metrics;
-		sft_gmetrics( &sft, v, &glyph_metrics );
+		sft_gmetrics( &font->sft, v, &glyph_metrics );
+		font->ttf_bitmaps[i].x_offset = glyph_metrics.leftSideBearing;
 		font->ttf_bitmaps[i].y_offset = -glyph_metrics.yOffset;
+		font->ttf_bitmaps[i].advance = glyph_metrics.advanceWidth;
+		font->ttf_bitmaps[i].width = glyph_metrics.minWidth;
+		font->ttf_bitmaps[i].height = glyph_metrics.minHeight;
+
+		SFT_Image img = {
+			.pixels = vmalloc(2 * glyph_metrics.minWidth * glyph_metrics.minHeight),
+			.width = glyph_metrics.minWidth,
+			.height = glyph_metrics.minHeight
+		};
+
 
 		//vdf( "\'%c\' y_offset: %d\n", i, font->ttf_bitmaps[i].y_offset );
-
-		sft_render( &sft, v, img );
-		memcpy( font->ttf_bitmaps[i].pixel, img.pixels, 2 * font->size * font->size );
+		memset( img.pixels, 0, 2 * font->ttf_bitmaps[i].width * font->ttf_bitmaps[i].height );
+		sft_render( &font->sft, v, img );
+		memcpy( font->ttf_bitmaps[i].pixel, img.pixels, 2 * font->ttf_bitmaps[i].width * font->ttf_bitmaps[i].height);
 	}
 }
 

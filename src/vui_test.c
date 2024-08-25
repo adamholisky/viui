@@ -24,12 +24,16 @@ void vui_main_test_loop( void ) {
 	vui_font_initalize();
 
 	#ifdef VI_ENV_OS
-	vui_font_load( VUI_FONT_TYPE_PSF, "Zap Light", "/usr/share/fonts/zap-light20.psf" );
-	vui_font_load( VUI_FONT_TYPE_PSF, "Zap VGA", "/usr/share/fonts/zap-ext-vga16.psf" );
+	vui_font_load( VUI_FONT_TYPE_PSF, "zap-light", "/usr/share/fonts/zap-light20.psf" );
+	vui_font_load( VUI_FONT_TYPE_PSF, "zap-vga", "/usr/share/fonts/zap-ext-vga16.psf" );
 	#else
-	vui_font_load( VUI_FONT_TYPE_PSF, "Zap Light", "zap-light20.psf" );
-	vui_font_load( VUI_FONT_TYPE_PSF, "Zap VGA", "zap-ext-vga16.psf" );				
-	vui_font_load( VUI_FONT_TYPE_TTF, "Fira", "fira_code.ttf" );
+	vui_font_load( VUI_FONT_TYPE_PSF, "zap-light", "zap-light20.psf" );
+	vui_font_load( VUI_FONT_TYPE_PSF, "zap-vga", "zap-ext-vga16.psf" );				
+	vui_font_load( VUI_FONT_TYPE_TTF, "dejavu-sans", "DejaVuSans.ttf" );
+	vui_font_load( VUI_FONT_TYPE_TTF, "dejavu-sans-bold", "DejaVuSans-Bold.ttf" );
+	vui_font_load( VUI_FONT_TYPE_TTF, "dejavu-sans-italic", "DejaVuSans-Oblique.ttf" );
+	vui_font_load( VUI_FONT_TYPE_TTF, "noto-sans", "NotoSans-Regular.ttf" );
+	vui_font_load( VUI_FONT_TYPE_TTF, "noto-sans-bold", "NotoSans-SemiBold.ttf" );
 
 	#endif
 
@@ -42,7 +46,7 @@ void vui_main_test_loop( void ) {
 	vui_font_create_aa_mask( vui_font_get_font("Zap VGA"), 'n' );
 	vui_font_create_aa_mask( vui_font_get_font("Zap VGA"), '6' ); */
 
-	vui_draw_string( "Version", 10, 10, COLOR_RGB_BLACK, COLOR_RGB_WHITE, vui_font_get_font("Zap VGA"), VUI_DRAW_FLAGS_IMMEDIATE );
+	vui_draw_string( "Version", 10, 10, COLOR_RGB_BLACK, COLOR_RGB_WHITE, vui_font_get_font("zap-vga"), VUI_DRAW_FLAGS_IMMEDIATE );
 	
 
 	vui_theme *theme = vui_get_active_theme();
