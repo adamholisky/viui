@@ -43,6 +43,8 @@ vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t 
 	con->char_width = con->font->info.width;
 	con->char_height = con->font->info.height;
 
+	vdf( "w: %d   h: %d\n", con->char_width, con->char_height );
+
 	con->num_cols = (con->text_area_width / con->char_width);
 	con->num_rows = con->text_area_height / con->char_height;
 

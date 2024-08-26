@@ -26,6 +26,11 @@ void vui_main_test_loop( void ) {
 	#ifdef VI_ENV_OS
 	vui_font_load( VUI_FONT_TYPE_PSF, "zap-light", "/usr/share/fonts/zap-light20.psf" );
 	vui_font_load( VUI_FONT_TYPE_PSF, "zap-vga", "/usr/share/fonts/zap-ext-vga16.psf" );
+	vui_font_load( VUI_FONT_TYPE_TTF, "dejavu-sans", "/usr/share/fonts/DejaVuSans.ttf" );
+	vui_font_load( VUI_FONT_TYPE_TTF, "dejavu-sans-bold", "/usr/share/fonts/DejaVuSans-Bold.ttf" );
+	vui_font_load( VUI_FONT_TYPE_TTF, "dejavu-sans-italic", "/usr/share/fonts/DejaVuSans-Oblique.ttf" );
+	vui_font_load( VUI_FONT_TYPE_TTF, "noto-sans", "/usr/share/fonts/NotoSans-Regular.ttf" );
+	vui_font_load( VUI_FONT_TYPE_TTF, "noto-sans-bold", "/usr/share/fonts/NotoSans-SemiBold.ttf" );
 	#else
 	vui_font_load( VUI_FONT_TYPE_PSF, "zap-light", "zap-light20.psf" );
 	vui_font_load( VUI_FONT_TYPE_PSF, "zap-vga", "zap-ext-vga16.psf" );				

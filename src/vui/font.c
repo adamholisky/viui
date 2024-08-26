@@ -132,6 +132,45 @@ void vui_font_get_bounding_box( char *text, vui_font *font, uint16_t *width, uin
 }
 
 void vui_font_load_ttf( vui_font *font ) {
+	#ifdef VI_ENV_OS
+	vfs_stat_data stats;
+	uint32_t file_size;
+
+	int stat_error = vfs_stat( vfs_lookup_inode(font->info.path), &stats );
+	if( stat_error != VFS_ERROR_NONE ) {
+		debugf( "Error: %d\n", stat_error );
+		return;
+	}
+
+	file_size = stats.size;
+
+	uint8_t *data = vmalloc( file_size );
+	int read_err = vfs_read( vfs_lookup_inode(font->info.path), data, file_size, 0 );
+	if( read_err < VFS_ERROR_NONE ) {
+		debugf( "Error when reading: %d\n", read_err );
+		return;
+	}
+	#else
+	FILE *f = fopen( font->info.path, "r" );
+
+	if( f == NULL ) {
+		vdf( "Cannot open %s, f returned NULL.\n", font->info.path );
+		return;
+	}
+
+	struct stat file_meta;
+	stat( font->info.path, &file_meta );
+
+	uint32_t file_size = file_meta.st_size;
+
+	uint8_t *data = vmalloc( file_size );
+
+	if( fread( data, file_size, 1, f ) != 1 ) {
+		vdf( "Read failed on %s, fread returned not 1.\n", font->info.path );
+		return;
+	}
+	#endif
+
 	font->type = VUI_FONT_TYPE_TTF;
 	font->size = 13;
 	font->info.height = 13;
@@ -140,7 +179,7 @@ void vui_font_load_ttf( vui_font *font ) {
 	font->ttf_bitmaps = vmalloc( font->glyph_count * sizeof(font_ttf_bitmap) );
 	
 	for( int i = 0; i < font->glyph_count; i++ ) {
-		font->ttf_bitmaps[i].pixel = vmalloc( 2 * font->size * font->size ); 
+		//font->ttf_bitmaps[i].pixel = vmalloc( 2 * font->size * font->size ); 
 	}
 
 	font->sft.xScale = font->size;
@@ -148,7 +187,7 @@ void vui_font_load_ttf( vui_font *font ) {
 	font->sft.flags = SFT_DOWNWARD_Y;
 
 	//sft.font = sft_loadfile("./fira_code.ttf");
-	font->sft.font = sft_loadfile( font->info.path );
+	font->sft.font = sft_loadmem( data, file_size );
 
 	if( font->sft.font == NULL ) {
 		vdf( "sft font failed to load" );
@@ -156,7 +195,7 @@ void vui_font_load_ttf( vui_font *font ) {
 
 	SFT_LMetrics line_metrics;
 	sft_lmetrics( &font->sft, &line_metrics );
-	vdf( "asc: %f    dsc: %f    lineGap: %f\n", line_metrics.ascender, line_metrics.descender, line_metrics.lineGap );
+	//vdf( "asc: %f    dsc: %f    lineGap: %f\n", line_metrics.ascender, line_metrics.descender, line_metrics.lineGap );
 	font->info.height = 13;
 
 	SFT_Glyph test_glyph;
@@ -165,7 +204,7 @@ void vui_font_load_ttf( vui_font *font ) {
 	sft_gmetrics( &font->sft, test_glyph, &glyph_metrics );
 	font->info.width = glyph_metrics.advanceWidth;
 
-	vdf( "%f\n", glyph_metrics.advanceWidth );
+	//vdf( "%f\n", glyph_metrics.advanceWidth );
 
 
 	SFT_Glyph v;
@@ -181,27 +220,38 @@ void vui_font_load_ttf( vui_font *font ) {
 	vdf( "render result: %d\n", sft_render( &sft, v, img ) );
 	memcpy( font->ttf_bitmaps[1].pixel, img.pixels, 2 * 20 * 20 ); */
 
+	void *pix_store = vmalloc(2 * 100 * 100);
+
 	for( int i = 0; i < 256; i++ ) {
-		sft_lookup( &font->sft, dos_code_page[i], &v );
+		//vdf( "rendering %d\n", i );
+		int lookup_res = sft_lookup( &font->sft, dos_code_page[i], &v );
+
+		//vdf( "lookup_res: %d\n", lookup_res );
 		
 		SFT_GMetrics glyph_metrics;
-		sft_gmetrics( &font->sft, v, &glyph_metrics );
+		int gmetrics_res = sft_gmetrics( &font->sft, v, &glyph_metrics );
+		//vdf( "gmetrics_res: %d\n", gmetrics_res );
+
 		font->ttf_bitmaps[i].x_offset = glyph_metrics.leftSideBearing;
 		font->ttf_bitmaps[i].y_offset = -glyph_metrics.yOffset;
 		font->ttf_bitmaps[i].advance = glyph_metrics.advanceWidth;
 		font->ttf_bitmaps[i].width = glyph_metrics.minWidth;
 		font->ttf_bitmaps[i].height = glyph_metrics.minHeight;
+		font->ttf_bitmaps[i].pixel = vmalloc( 2 * font->ttf_bitmaps[i].width * font->ttf_bitmaps[i].height ); 
+		
+		memset( pix_store, 0, 2 * 100 * 100 );
 
 		SFT_Image img = {
-			.pixels = vmalloc(2 * glyph_metrics.minWidth * glyph_metrics.minHeight),
+			.pixels = pix_store,
 			.width = glyph_metrics.minWidth,
 			.height = glyph_metrics.minHeight
 		};
 
-
 		//vdf( "\'%c\' y_offset: %d\n", i, font->ttf_bitmaps[i].y_offset );
-		memset( img.pixels, 0, 2 * font->ttf_bitmaps[i].width * font->ttf_bitmaps[i].height );
-		sft_render( &font->sft, v, img );
+		//memset( img.pixels, 0, 2 * font->ttf_bitmaps[i].width * font->ttf_bitmaps[i].height );
+		int render_res = sft_render( &font->sft, v, img );
+		//vdf( "render_res: %d\n", render_res );
+
 		memcpy( font->ttf_bitmaps[i].pixel, img.pixels, 2 * font->ttf_bitmaps[i].width * font->ttf_bitmaps[i].height);
 	}
 }

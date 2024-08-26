@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <vit.h>
 
 #if defined(_MSC_VER)
 # define restrict __restrict
@@ -29,10 +30,10 @@
 # define WIN32_LEAN_AND_MEAN 1
 # include <windows.h>
 #else
-# define _POSIX_C_SOURCE 1
-# include <fcntl.h>
-# include <sys/mman.h>
-# include <sys/stat.h>
+//# define _POSIX_C_SOURCE 1
+//# include <fcntl.h>
+//# include <sys/mman.h>
+//# include <sys/stat.h>
 # include <unistd.h>
 #endif
 
@@ -68,11 +69,14 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define SIGN(x)   (((x) > 0) - ((x) < 0))
 /* Allocate values on the stack if they are small enough, else spill to heap. */
-#define STACK_ALLOC(var, type, thresh, count) \
+/* #define STACK_ALLOC(var, type, thresh, count) \
 	type var##_stack_[thresh]; \
-	var = (count) <= (thresh) ? var##_stack_ : calloc(sizeof(type), count);
+	var = (count) <= (thresh) ? var##_stack_ : vcalloc(sizeof(type), count);
 #define STACK_FREE(var) \
-	if (var != var##_stack_) free(var);
+	if (var != var##_stack_) vfree(var); */
+
+#define STACK_ALLOC(var, type, thresh, count) var = vcalloc(sizeof(type), count);
+#define STACK_FREE(var) vfree(var);
 
 enum { SrcMapping, SrcUser };
 
@@ -129,8 +133,8 @@ static void *sc_reallocarray(void *optr, size_t nmemb, size_t size);
 static inline int fast_floor(double x);
 static inline int fast_ceil (double x);
 /* file loading */
-static int  map_file  (SFT_Font *font, const char *filename);
-static void unmap_file(SFT_Font *font);
+/* static int  map_file  (SFT_Font *font, const char *filename);
+static void unmap_file(SFT_Font *font); */
 static int  init_font (SFT_Font *font);
 /* simple mathematical operations */
 static Point midpoint(Point a, Point b);
@@ -197,7 +201,7 @@ sft_loadmem(const void *mem, size_t size)
 	if (size > UINT32_MAX) {
 		return NULL;
 	}
-	if (!(font = calloc(1, sizeof *font))) {
+	if (!(font = vmalloc(sizeof *font))) {
 		return NULL;
 	}
 	font->memory = mem;
@@ -211,7 +215,7 @@ sft_loadmem(const void *mem, size_t size)
 }
 
 /* Loads a font from the file system. To do so, it has to map the entire font into memory. */
-SFT_Font *
+/* SFT_Font *
 sft_loadfile(char const *filename)
 {
 	SFT_Font *font;
@@ -227,16 +231,16 @@ sft_loadfile(char const *filename)
 		return NULL;
 	}
 	return font;
-}
+} */
 
 void
 sft_freefont(SFT_Font *font)
 {
 	if (!font) return;
 	/* Only unmap if we mapped it ourselves. */
-	if (font->source == SrcMapping)
-		unmap_file(font);
-	free(font);
+	/* 	if (font->source == SrcMapping)
+		unmap_file(font); */
+	vfree(font);
 }
 
 int
@@ -414,10 +418,10 @@ sc_reallocarray(void *optr, size_t nmemb, size_t size)
 {
 	if ((nmemb >= MUL_NO_OVERFLOW || size >= MUL_NO_OVERFLOW) &&
 	    nmemb > 0 && SIZE_MAX / nmemb < size) {
-		errno = ENOMEM;
+		//errno = ENOMEM;
 		return NULL;
 	}
-	return realloc(optr, size * nmemb);
+	return vrealloc(optr, size * nmemb);
 }
 
 /* TODO maybe we should use long here instead of int. */
@@ -492,7 +496,7 @@ unmap_file(SFT_Font *font)
 
 #else
 
-static int
+/* static int
 map_file(SFT_Font *font, const char *filename)
 {
 	struct stat info;
@@ -507,19 +511,19 @@ map_file(SFT_Font *font, const char *filename)
 		close(fd);
 		return -1;
 	}
-	/* FIXME do some basic validation on info.st_size maybe - it is signed for example, so it *could* be negative .. */
+	//FIXME do some basic validation on info.st_size maybe - it is signed for example, so it *could* be negative ..
 	font->memory = mmap(NULL, (size_t) info.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 	font->size   = (uint_fast32_t) info.st_size;
 	close(fd);
 	return font->memory == MAP_FAILED ? -1 : 0;
-}
+} */
 
-static void
+/* static void
 unmap_file(SFT_Font *font)
 {
 	assert(font->memory != MAP_FAILED);
 	munmap((void *) font->memory, font->size);
-}
+} */
 
 #endif
 
@@ -605,15 +609,15 @@ init_outline(Outline *outl)
 	/* TODO Smaller initial allocations */
 	outl->numPoints = 0;
 	outl->capPoints = 64;
-	if (!(outl->points = malloc(outl->capPoints * sizeof *outl->points)))
+	if (!(outl->points = vmalloc(outl->capPoints * sizeof *outl->points)))
 		return -1;
 	outl->numCurves = 0;
 	outl->capCurves = 64;
-	if (!(outl->curves = malloc(outl->capCurves * sizeof *outl->curves)))
+	if (!(outl->curves = vmalloc(outl->capCurves * sizeof *outl->curves)))
 		return -1;
 	outl->numLines = 0;
 	outl->capLines = 64;
-	if (!(outl->lines = malloc(outl->capLines * sizeof *outl->lines)))
+	if (!(outl->lines = vmalloc(outl->capLines * sizeof *outl->lines)))
 		return -1;
 	return 0;
 }
@@ -621,9 +625,9 @@ init_outline(Outline *outl)
 static void
 free_outline(Outline *outl)
 {
-	free(outl->points);
-	free(outl->curves);
-	free(outl->lines);
+	vfree(outl->points);
+	vfree(outl->curves);
+	vfree(outl->lines);
 }
 
 static int
