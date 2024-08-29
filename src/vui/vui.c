@@ -42,6 +42,7 @@ void vui_init( uint32_t *fb_addr, uint16_t width, uint16_t height ) {
 	vui.active_theme.button_active = 0x003476;
 	vui.active_theme.menubar_background = 0xD9D9D9;
 	vui.active_theme.menubar_foreground = 0x363636;
+	vui.active_theme.menubar_select = 0xFF0000;
 }
 
 /**

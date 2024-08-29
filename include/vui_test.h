@@ -15,6 +15,8 @@ void example_create_without_layout_engine( void );
 void button1_on_mouse_up( vui_event *e );
 void button2_on_mouse_up( vui_event *e );
 
+void test_menubar_event_handler( vui_event *e );
+
 #ifdef __cplusplus
 }
 #endif

@@ -53,7 +53,9 @@ void vui_menu_calculate_dimensions( vui_menu *menu ) {
 	menu->inner_height = menu->height - 2;
 }
 
-void vui_menu_add_item( vui_menu *menu, char *name, char *text ) {
+void vui_menu_add_item( vui_handle menu_handle, char *name, char *text ) {
+	vui_menu *menu = vui_get_handle_data(menu_handle);
+
 	vui_menu_item *head = menu->items;
 	vui_menu_item *item = NULL;
 
@@ -74,3 +76,4 @@ void vui_menu_add_item( vui_menu *menu, char *name, char *text ) {
 	strcpy( head->name, name );
 	head->next = NULL;
 }
+

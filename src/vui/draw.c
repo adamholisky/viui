@@ -37,6 +37,9 @@ void vui_draw_handle( vui_handle H ) {
 		case VUI_HANDLE_TYPE_MENUBAR:
 			vui_menubar_draw_from_struct( vui.handles[H].data );
 			break;
+		case VUI_HANDLE_TYPE_MENUTITLE:
+			// Don't draw this, menubar handles its drawing
+			break;
 		default:
 			vdf( "VUI: Cannot find handle type to draw.\n" );
 	}
@@ -290,9 +293,29 @@ void vui_draw_string( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg,
 	}
 }
 
-void vui_draw_string_ttf( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, uint16_t size, uint64_t flags ) {
+void vui_string_ttf_get_box( char *s, vui_font *font, uint16_t size, uint16_t *box_w, uint16_t *box_h ) {
+	int len = strlen(s);
+	uint16_t pix_len = 0;
+	vui_font *f = ( font == NULL ? vui_font_get_main_font() : font );
+
+	for( int i = 0; i < len; i++ ) {
+		if( f->type == VUI_FONT_TYPE_TTF ) {
+			uint32_t char_num = *s;
+
+			pix_len = pix_len + font->ttf_bitmaps[char_num].advance + 1;
+		}
+		
+		s++;
+	}
+
+	*box_w = pix_len;
+	*box_h = font->ttf_bitmaps->height;
+}
+
+uint16_t vui_draw_string_ttf( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, uint16_t size, uint64_t flags ) {
 	int len = strlen(s);
 	int current_x = x;
+	uint16_t pix_len = 0;
 	vui_font *f = ( font == NULL ? vui_font_get_main_font() : font );
 
 	for( int i = 0; i < len; i++ ) {
@@ -304,10 +327,13 @@ void vui_draw_string_ttf( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t
 			//vdf( "final width: %d\n", font->ttf_bitmaps[char_num].advance + 1 );
 
 			current_x = current_x + font->ttf_bitmaps[char_num].advance + 1;
+			pix_len = pix_len + font->ttf_bitmaps[char_num].advance + 1;
 		}
 		
 		s++;
 	}
+
+	return pix_len;
 }
 
 /**

@@ -21,16 +21,33 @@ typedef struct {
 	char text[50];
 
 	vui_menu_item *items;
+	void *menu_title;
 	uint8_t num_items;
 
 	void *next;
 } vui_menu;
 
+typedef struct {
+	INSERT_VUI_COMMON
+
+	char text[50];
+
+	vui_menu *menu;
+} vui_menu_title;
+
 vui_handle vui_menu_create( char *name, char *text );
 void vui_menu_draw( vui_handle H );
 void vui_menu_draw_from_struct( vui_menu *menu );
-void vui_menu_add_item( vui_menu *menu, char *name, char *text );
+void vui_menu_add_item( vui_handle menu_handle, char *name, char *text );
 void vui_menu_calculate_dimensions( vui_menu *menu );
+
+
+vui_handle vui_menu_title_create( char *text, vui_handle menu );
+void vui_menu_title_set_box( vui_handle H, uint16_t x, uint16_t y, uint16_t width, uint16_t height );
+void vui_menu_title_draw_from_struct( vui_menu_title *title );
+void vui_menu_title_draw( vui_handle H );
+void vui_menu_title_on_mouse_enter( vui_event *e );
+void vui_menu_title_on_mouse_exit( vui_event *e );
 
 #ifdef __cplusplus
 }

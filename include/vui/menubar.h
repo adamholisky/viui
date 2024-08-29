@@ -11,12 +11,15 @@ typedef struct {
 	INSERT_VUI_COMMON
 
 	vui_menu *menus;
+
+	uint16_t next_menu_x;
+	uint16_t next_menu_y;
 } vui_menubar;
 
 vui_handle vui_menubar_create( void );
 void vui_menubar_draw( vui_handle H );
 void vui_menubar_draw_from_struct( vui_menubar *menubar );
-void vui_menubar_add( vui_menubar *menubar, vui_menu *menu );
+void vui_menubar_add_menu( vui_handle menubar, vui_handle menu );
 
 #ifdef __cplusplus
 }

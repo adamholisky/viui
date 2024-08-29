@@ -23,6 +23,7 @@ extern "C" {
 #define VUI_HANDLE_TYPE_MENUBAR 6
 #define VUI_HANDLE_TYPE_MENU 7
 #define VUI_HANDLE_TYPE_MENUITEM 8
+#define VUI_HANDLE_TYPE_MENUTITLE 9
 
 #define VUI_PRIORITY_FRONT 0x1
 #define VUI_PRIORITY_MENU 0x10
@@ -76,6 +77,7 @@ typedef struct {
 	uint32_t button_hover;
 	uint32_t menubar_background;
 	uint32_t menubar_foreground;
+	uint32_t menubar_select;
 } vui_theme;
 
 typedef struct {
@@ -194,10 +196,11 @@ void vui_draw( vui_handle H );
 void vui_draw_handle( vui_handle H );
 void vui_draw_rect( uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color );
 void vui_draw_string( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, uint64_t flags );
-void vui_draw_string_ttf( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, uint16_t size, uint64_t flags );
+uint16_t vui_draw_string_ttf( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, uint16_t size, uint64_t flags );
 void vui_draw_char( uint16_t char_num, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, uint64_t flags );
 void vui_draw_char_ttf( uint32_t char_num, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, uint64_t flags );
 void vui_move_rect( uint32_t dest_x, uint32_t dest_y, uint32_t dest_w, uint32_t dest_h, uint32_t src_x, uint32_t src_y, uint32_t src_w, uint32_t src_h );
+void vui_string_ttf_get_box( char *s, vui_font *font, uint16_t size, uint16_t *box_w, uint16_t *box_h );
 
 #ifdef __cplusplus
 }

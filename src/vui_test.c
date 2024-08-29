@@ -59,6 +59,34 @@ void vui_main_test_loop( void ) {
 	vui_handle menubar = vui_menubar_create();
 	vui_handle_set_name( menubar, "main_menubar" );
 
+	vui_handle menu_vi = vui_menu_create( "menu_vi", "Vi" );
+	vui_menu_add_item( menu_vi, "mi_about", "About" );
+	vui_menu_add_item( menu_vi, "seperator", "-" );
+	vui_menu_add_item( menu_vi, "mi_restart", "Restart" );
+	vui_menu_add_item( menu_vi, "mi_shutdown", "Shutdown" );
+
+	vui_handle menu_file = vui_menu_create( "menu_file", "File" );
+	vui_menu_add_item( menu_file, "mi_run", "Run" );
+
+	vui_handle menu_edit = vui_menu_create( "menu_edit", "Edit" );
+	vui_menu_add_item( menu_edit, "mi_undo", "Undo" );
+	vui_menu_add_item( menu_edit, "seperator", "-" );
+	vui_menu_add_item( menu_edit, "mi_cut", "Cut" );
+	vui_menu_add_item( menu_edit, "mi_copy", "Copy" );
+	vui_menu_add_item( menu_edit, "mi_paste", "Paste" );
+
+	vui_handle menu_debug = vui_menu_create( "menu_debug", "Debug" );
+	vui_menu_add_item( menu_debug, "mi_dm", "Display Memory" );
+
+	vui_handle menu_windows = vui_menu_create( "menu_windows", "Windows" );
+	vui_menu_add_item( menu_windows, "mi_terminal", "VIOS Terminal" );
+
+	vui_menubar_add_menu( menubar, menu_vi );
+	vui_menubar_add_menu( menubar, menu_file );
+	vui_menubar_add_menu( menubar, menu_edit );
+	vui_menubar_add_menu( menubar, menu_debug );
+	vui_menubar_add_menu( menubar, menu_windows );
+
 	vui_handle desktop = vui_desktop_create( 0, 25, vui.width, vui.height - 25, VUI_DESKTOP_FLAG_NONE );
 	vui_handle smooth_text = vui_label_create( 5, 768 - 25, "Versions OS 6.0.0.1", VUI_LABEL_FLAG_TRANSPARENT, desktop );
 	vui_label_set_color( smooth_text, COLOR_RGB_WHITE, theme->window_background );
@@ -78,6 +106,8 @@ void vui_main_test_loop( void ) {
 
 	vui_set_event_handler( desktop, VUI_EVENT_ALL, test_window_event_handler );
 	vui_set_event_handler( win, VUI_EVENT_ALL, test_window_event_handler );
+	vui_set_event_handler( menubar, VUI_EVENT_ALL, test_window_event_handler );
+
 
 	example_create_with_layout_engine();
 
@@ -89,6 +119,15 @@ void vui_main_test_loop( void ) {
 	font_draw_ttf_char( vui_font_get_font("Fira"), 'd', 50, 10, COLOR_RGB_BLACK, COLOR_RGB_WHITE ); */
 	vui_refresh();
 	
+}
+
+void test_menubar_event_handler( vui_event *e ) {
+	char str[50];
+
+	if( e->type != VUI_EVENT_MOUSE_MOVE ) {
+		sprintf( str, "Event: %s    name=%s\n", vui_event_type_to_string(e->type), e->name );
+		vui_console_put_string( vui_get_handle_data(main_con), str );
+	}
 }
 
 void example_create_with_layout_engine( void ) {
