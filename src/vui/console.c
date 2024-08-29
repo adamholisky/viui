@@ -23,6 +23,7 @@ vui_handle vui_console_create( uint16_t x, uint16_t y, uint16_t width, uint16_t 
 
 	con->handle = H;
 	con->type = VUI_HANDLE_TYPE_CONSOLE;
+	con->is_visible = true;
 
 	con->pixel_x= x;
 	con->pixel_y = y;

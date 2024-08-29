@@ -17,6 +17,7 @@ vui_handle vui_button_create( char *text, uint16_t x, uint16_t y, uint16_t width
 	button->handle = H;
 	button->type = VUI_HANDLE_TYPE_BUTTON;
 	button->flags = 0;
+	button->is_visible = true;
 
 	button->width = width;
 	button->height = height;

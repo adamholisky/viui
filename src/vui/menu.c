@@ -24,6 +24,11 @@ void vui_menu_draw( vui_handle H ) {
 }
 
 void vui_menu_draw_from_struct( vui_menu *menu ) {
+	// only draw if we're visible
+	if( !menu->is_visible ) {
+		return;
+	}
+
 	vui_theme *theme = vui_get_active_theme();
 	
 	vui_menu_calculate_dimensions( menu );
@@ -31,8 +36,13 @@ void vui_menu_draw_from_struct( vui_menu *menu ) {
 	vui_draw_rect( menu->x, menu->y, menu->width, menu->height, theme->border );
 	vui_draw_rect( menu->inner_x, menu->inner_y, menu->inner_width, menu->inner_height, theme->menubar_background ); 
 
+	vui_menu_item *item = menu->items;
+
 	for( int i = 0; i < menu->num_items; i++ ) {
-		vui_draw_string( menu->items[i].text, menu->inner_x + 5, menu->inner_y + (i * 25) + 5, theme->menubar_foreground, theme->menubar_background, vui_font_get_font("Zap VGA"), VUI_DRAW_FLAGS_NONE );
+		vui_menu_item_set_box( item->handle, menu->inner_x, menu->inner_y + (i * menu->item_height), menu->item_width_max, menu->item_height );
+		vui_draw(item->handle);
+
+		item = item->next;
 	}
 }
 
@@ -44,11 +54,31 @@ void vui_menu_set_display_location( vui_menu *menu, uint16_t x, uint16_t y ) {
 }
 
 void vui_menu_calculate_dimensions( vui_menu *menu ) {
-	menu->width = 50 + 10 + 2; // 50 content, 10 = 5 padding on right left, 2 = border
+	uint16_t width_max = 0;
+
+	vui_menu_item *item = menu->items;
+
+	for( int i = 0; i < menu->num_items; i++ ) {
+		if( item != NULL ) {
+			uint16_t width = 0;
+			uint16_t height = 0;
+
+			vui_string_ttf_get_box( item->text, vui_font_get_font("noto-sans-bold"), 13, &width, &height );
+
+			width_max = width > width_max ? width : width_max;
+
+			item = item->next;
+		}		
+	}
+
+	menu->item_width_max = width_max;
+	menu->item_height = 25;
+	
+	menu->width = width_max + 10 + 2; // 50 content, 10 = 5 padding on right left, 2 = border
 	menu->height = (menu->num_items * 25) + 10 + 2; // 25 per item, 5 padding on top bottom, 2 = border
 
-	menu->inner_x = menu->x - 1;
-	menu->inner_y = menu->y - 1;
+	menu->inner_x = menu->x + 1;
+	menu->inner_y = menu->y + 1;
 	menu->inner_width = menu->width - 2;
 	menu->inner_height = menu->height - 2;
 }
@@ -57,23 +87,21 @@ void vui_menu_add_item( vui_handle menu_handle, char *name, char *text ) {
 	vui_menu *menu = vui_get_handle_data(menu_handle);
 
 	vui_menu_item *head = menu->items;
-	vui_menu_item *item = NULL;
+	vui_handle mi_handle = vui_menu_item_create( text, name, menu_handle );
+	vui_menu_item *item = vui_get_handle_data( mi_handle );
+
+	vui_add_to_parent( menu_handle, mi_handle );
 
 	if( head == NULL ) {
-		head = vmalloc(sizeof(vui_menu_item));
-		item = head;
+		menu->items = item;
 	} else {
-		do {
-			if( head->next == NULL ) {
-				head->next = vmalloc(sizeof(vui_menu_item));
-				item = head->next;
-			}
+		while( head->next != NULL ) {
 			head = head->next;
-		} while( item != NULL );
+		}
+
+		head->next = item;
 	}
-	
-	strcpy( head->text, text );
-	strcpy( head->name, name );
-	head->next = NULL;
+
+	menu->num_items++;
 }
 

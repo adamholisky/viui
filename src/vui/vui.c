@@ -136,34 +136,6 @@ void vui_set_handle_data( vui_handle H, void *data ) {
 }
 
 /**
- * @brief Draws the given handle and all its children
- * 
- * @param H vui_handle of the element to draw
- */
-void vui_draw( vui_handle H ) {
-	// Step 1: Draw the container
-	vui_draw_handle(H);
-
-	// Step 2: Iterate through children, draw each
-	vui_common *parent_st = vui_get_handle_data(H);
-
-	if( parent_st == NULL ) {
-		vdf( "Parent struct is null. Aborting.\n" );
-		return;
-	}
-
-	vui_handle_list *top = &parent_st->children;
-
-	do {
-		if( top->H != 0 ) {
-			vui_draw_handle( top->H );
-		}
-		
-		top = top->next;
-	} while( top != NULL );
-}
-
-/**
  * @brief Adds the given handle to the provided handle list
  * 
  * @param list Pointer to the list to add to
@@ -230,6 +202,7 @@ void vui_add_to_parent( vui_handle parent, vui_handle child ) {
 	vui_handle_list *top = &parent_st->children;
 	vui_handle_list_add( &parent_st->children, child_st->handle );
 	child_st->parent = parent_st->handle;
+	parent_st->num_children++;
 
 	// Step 4: Sort parent's child handles by priority order
 	// TODO ^^
@@ -290,5 +263,19 @@ void vui_sort_list_by_priority( vui_handle_list *list ) {
 	for( vui_handle_list *hl = list; hl != NULL; hl = hl->next ) {
 		vui_common *vc = vui_get_handle_data(hl->H);
 		//vdf( "   %d -> %08X\n", hl->H, vc->priority );
+	}
+}
+
+void vui_dump_handles( void ) {
+	vdf( "Handles:\n" );
+	for( int i = 0; i < vui.handle_next; i++ ) {
+		if( vui.handles[i].data != NULL ) {
+			vui_common *v = vui.handles[i].data;
+
+			vdf( "    %3d: type = %d    name = %s\n", i, vui.handles[i].type, v->name );
+		} else {
+			vdf( "    %3d: Handle has NULL data.\n", i );
+		}
+		
 	}
 }

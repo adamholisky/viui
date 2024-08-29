@@ -13,6 +13,7 @@ vui_handle vui_menubar_create( void ) {
 	main_menubar.type = VUI_HANDLE_TYPE_MENUBAR;
 	main_menubar.handle = main_menubar_handle;
 	main_menubar.priority = 0xFFFFFFFE;
+	main_menubar.is_visible = true;
 
 	main_menubar.x = 0;
 	main_menubar.y = 0;

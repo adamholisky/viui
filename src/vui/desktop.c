@@ -12,6 +12,7 @@ vui_handle vui_desktop_create( uint16_t x, uint16_t y, uint16_t width, uint16_t 
 	desktop->handle = H;
 	desktop->flags = flags;
 	desktop->priority = 0xFFFFFFFF;	// Desktop gets the lowest priority in the event chain
+	desktop->is_visible = true;
 
 	desktop->x = x;
 	desktop->y = y;

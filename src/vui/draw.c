@@ -13,11 +13,51 @@
 extern vui_core vui;
 
 /**
+ * @brief Draws the given handle and all its children
+ * 
+ * @param H vui_handle of the element to draw
+ */
+void vui_draw( vui_handle H ) {
+	vui_common *vc = vui_get_handle_data(H);
+
+	if( !vc->is_visible ) {
+		return;
+	}
+
+	// Step 1: Draw the container
+	vui_draw_handle(H);
+
+	// Step 2: Iterate through children, draw each
+	vui_common *parent_st = vui_get_handle_data(H);
+
+	if( parent_st == NULL ) {
+		vdf( "Parent struct is null. Aborting.\n" );
+		return;
+	}
+
+	vui_handle_list *top = &parent_st->children;
+
+	do {
+		if( top->H != 0 ) {
+			vui_draw_handle( top->H );
+		}
+		
+		top = top->next;
+	} while( top != NULL );
+}
+
+/**
  * @brief Draws the object given by the handle
  * 
  * @param H vui_handle handle
  */
 void vui_draw_handle( vui_handle H ) {
+	vui_common *v = vui.handles[H].data;
+
+	if( !v->is_visible ) {
+		return;
+	}
+
 	switch( vui.handles[H].type ) {
 		case VUI_HANDLE_TYPE_WINDOW:
 			vui_window_draw_from_struct( vui.handles[H].data );
@@ -40,11 +80,63 @@ void vui_draw_handle( vui_handle H ) {
 		case VUI_HANDLE_TYPE_MENUTITLE:
 			// Don't draw this, menubar handles its drawing
 			break;
+		case VUI_HANDLE_TYPE_MENU:
+			vui_menu_draw_from_struct( vui.handles[H].data );
+			break;
+		case VUI_HANDLE_TYPE_MENUITEM:
+			vui_menu_item_draw_from_struct( vui.handles[H].data );
+			break;
 		default:
 			vdf( "VUI: Cannot find handle type to draw.\n" );
 	}
 
+	//vui_refresh();
+}
+
+void vui_draw_parents( void ) {
+	for( int i = 0; i < vui.handle_next; i++ ) {
+		if( vui_is_dispatcher( vui.handles[i].type ) ) {
+			vdf( "Drawing %d\n", vui.handles[i].H );
+			
+			vui_draw_handle( vui.handles[i].H );
+
+			vui_common *v = vui.handles[i].data;
+
+			if( v->num_children != 0 ) {
+				vui_draw_children( &v->children );
+			}
+		}
+	}
+
 	vui_refresh();
+}
+
+void vui_set_visible( vui_handle H, bool visible ) {
+	vdf( "Set Visible: %d\n", H );
+	vui_common *vc = vui.handles[H].data;
+
+	vc->is_visible = visible;
+
+	/* if( vc->num_children != 0 ) {
+		vui_handle_list *item = &vc->children;
+
+		while( item != NULL ) {
+			if( item->H != 0 ) {
+				vui_set_visible( item->H, visible );
+			}
+			item = item->next;
+		}
+	} */
+}
+
+void vui_draw_children( vui_handle_list *children ) {
+	vui_handle_list *item = children;
+
+	while( item != NULL ) {
+		vdf( "    Drawing Child %d\n", item->H );
+		vui_draw_handle( item->H );
+		item = item->next;
+	}
 }
 
 /**
@@ -85,6 +177,10 @@ void vui_refresh_handle( vui_handle H ) {
 
 	if( vc == NULL ) {
 		vdf( "Refresh handle %d returned NULL. Aborting.\n", H );
+		return;
+	}
+
+	if( !vc->is_visible ) {
 		return;
 	}
 

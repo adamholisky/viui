@@ -124,6 +124,7 @@ typedef struct {
 	char name[50];
 	vui_handle parent;
 	vui_handle_list children;
+	uint16_t num_children;
 	uint32_t priority;
 	vui_operations ops;
 
@@ -140,6 +141,7 @@ typedef struct {
 	uint16_t inner_height;
 
 	bool is_hover;
+	bool is_visible;
 } vui_common;
 
 #define INSERT_VUI_COMMON uint16_t type; \
@@ -147,6 +149,7 @@ vui_handle handle; \
 char name[50]; \
 vui_handle parent; \
 vui_handle_list children; \
+uint16_t num_children; \
 uint32_t priority; \
 vui_operations ops; \
 \
@@ -162,7 +165,8 @@ uint16_t inner_y; \
 uint16_t inner_width; \
 uint16_t inner_height; \
 \
-bool is_hover; 
+bool is_hover; \
+bool is_visible;
 
 
 /**************************************/
@@ -174,7 +178,7 @@ void vui_refresh_rect( uint16_t x, uint16_t y, uint16_t width, uint16_t height )
 void vui_refresh_handle( vui_handle H );
 
 /**************************************/
-/* Handle Management Functions                     */
+/* Handle Management Functions        */
 /**************************************/
 vui_handle vui_allocate_handle( uint16_t type );
 void vui_create_cleanup( vui_handle H );
@@ -184,16 +188,20 @@ void vui_handle_set_name( vui_handle H, char *name );
 char *vui_handle_get_name( vui_handle H);
 void vui_set_handle_data( vui_handle H, void *data );
 void *vui_get_handle_data( vui_handle H);
+void vui_dump_handles( void );
+void vui_set_visible( vui_handle H, bool visible );
 
 bool vui_handle_list_add( vui_handle_list *list, vui_handle handle_to_add );
 void vui_sort_list_by_priority( vui_handle_list *list );
 
 /**************************************/
-/* Drawing                 */
+/* Drawing                            */
 /**************************************/
 vui_theme *vui_get_active_theme( void );
 void vui_draw( vui_handle H );
 void vui_draw_handle( vui_handle H );
+void vui_draw_parents( void );
+void vui_draw_children( vui_handle_list *children );
 void vui_draw_rect( uint16_t x, uint16_t y, uint16_t width, uint16_t height, uint32_t color );
 void vui_draw_string( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, uint64_t flags );
 uint16_t vui_draw_string_ttf( char *s, uint16_t x, uint16_t y, uint32_t fg, uint32_t bg, vui_font *font, uint16_t size, uint64_t flags );

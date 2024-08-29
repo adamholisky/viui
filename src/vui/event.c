@@ -194,6 +194,7 @@ bool vui_is_dispatcher( uint16_t type ) {
 		case VUI_HANDLE_TYPE_DESKTOP:
 		case VUI_HANDLE_TYPE_WINDOW:
 		case VUI_HANDLE_TYPE_MENUBAR:
+		case VUI_HANDLE_TYPE_MENU:
 			return true;
 			break;
 	}

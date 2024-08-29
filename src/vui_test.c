@@ -91,14 +91,21 @@ void vui_main_test_loop( void ) {
 	vui_handle smooth_text = vui_label_create( 5, 768 - 25, "Versions OS 6.0.0.1", VUI_LABEL_FLAG_TRANSPARENT, desktop );
 	vui_label_set_color( smooth_text, COLOR_RGB_WHITE, theme->window_background );
 	vui_handle_set_name( desktop, "desktop" );
+	vui_handle_set_name( smooth_text, "label_test" );
 
 
 
-	vui_handle win = vui_window_create( 25, 40, 400, 300, VUI_WINDOW_FLAG_NONE );
+	vui_handle win = vui_window_create( 25, 400, 400, 300, VUI_WINDOW_FLAG_NONE );
 	vui_window_set_title( win, "ViOS 6" );
 	vui_window *win_s = vui_get_handle_data(win);
 	main_con = vui_console_create( win_s->inner_x, win_s->inner_y, win_s->inner_width, win_s->inner_height, win );
+	vui_window_set_background_color( win, 0x00232323 );
+	vui_handle_set_name( main_con, "main_console" );
 	vui_handle_set_name( win, "window_console" );
+
+	vui_dump_handles();
+
+	vui_set_visible( win, true );
 
 	vui_draw( menubar );
 	vui_draw( desktop );
@@ -113,7 +120,7 @@ void vui_main_test_loop( void ) {
 
 	vui_console_tests( main_con );
 
-
+	
 
 /* 	font_draw_ttf_char( vui_font_get_font("Fira"), 'A', 10, 10, 0x00FF00, COLOR_RGB_WHITE );
 	font_draw_ttf_char( vui_font_get_font("Fira"), 'd', 50, 10, COLOR_RGB_BLACK, COLOR_RGB_WHITE ); */
@@ -135,6 +142,7 @@ void example_create_with_layout_engine( void ) {
 	vui_window_set_title( win, "ViOS Control Tests -- Layout Engine" );
 	vui_set_event_handler( win, VUI_EVENT_ALL, test_window_event_handler );
 	vui_handle_set_name( win, "window_ctest" );	
+	vui_set_visible( win, true );
 
 	vui_layout *layout = vui_layout_init( VUI_LAYOUT_GRID_3x3, win );
 	
