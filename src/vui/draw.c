@@ -96,14 +96,18 @@ void vui_draw_handle( vui_handle H ) {
 void vui_draw_parents( void ) {
 	for( int i = 0; i < vui.handle_next; i++ ) {
 		if( vui_is_dispatcher( vui.handles[i].type ) ) {
-			vdf( "Drawing %d\n", vui.handles[i].H );
+			vui_common *vc = vui.handles[i].data;
+
+			if( vc->is_visible ) {
+				vdf( "Drawing %d\n", vui.handles[i].H );
 			
-			vui_draw_handle( vui.handles[i].H );
+				vui_draw_handle( vui.handles[i].H );
 
-			vui_common *v = vui.handles[i].data;
+				vui_common *v = vui.handles[i].data;
 
-			if( v->num_children != 0 ) {
-				vui_draw_children( &v->children );
+				if( v->num_children != 0 ) {
+					vui_draw_children( &v->children );
+				}
 			}
 		}
 	}

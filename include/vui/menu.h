@@ -46,6 +46,9 @@ void vui_menu_draw_from_struct( vui_menu *menu );
 void vui_menu_add_item( vui_handle menu_handle, char *name, char *text );
 void vui_menu_set_display_location( vui_menu *menu, uint16_t x, uint16_t y );
 void vui_menu_calculate_dimensions( vui_menu *menu );
+void vui_menu_hide( vui_handle menu_handle );
+void vui_menu_show( vui_handle menu_handle );
+void vui_menu_visible( vui_handle menu_handle, bool visible );
 
 
 vui_handle vui_menu_title_create( char *text, vui_handle menu );

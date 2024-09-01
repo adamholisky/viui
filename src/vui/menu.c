@@ -105,3 +105,28 @@ void vui_menu_add_item( vui_handle menu_handle, char *name, char *text ) {
 	menu->num_items++;
 }
 
+void vui_menu_hide( vui_handle menu_handle ) {
+	vui_menu_visible( menu_handle, false );
+	vui_refresh_handle(menu_handle);
+	vui_draw_parents();
+}
+
+void vui_menu_show( vui_handle menu_handle ) {
+	vui_menu_visible( menu_handle, true );
+	vui_refresh_handle(menu_handle);
+}
+
+void vui_menu_visible( vui_handle menu_handle, bool visible ) {
+	vui_menu *menu = vui_get_handle_data( menu_handle );
+
+	menu->is_visible = visible;
+
+	vui_menu_item *head = menu->items;
+	while( head != NULL ) {
+		head->is_visible = visible;
+
+		head = head->next;
+	}
+
+	vui_draw( menu_handle );
+}

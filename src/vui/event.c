@@ -70,9 +70,11 @@ vui_handle vui_find_handler_for_event( vui_handle_list *list, vui_event *e ) {
 
 		element = vui_get_handle_data(top->H);
 
-		if( (e->x >= element->absolute_x) && (e->x <= element->absolute_x + element->width) ) {
-			if( (e->y >= element->absolute_y) && (e->y <= element->absolute_y + element->height) ) {
-				found_dispatcher = true;
+		if( element->is_visible ) {
+			if( (e->x >= element->absolute_x) && (e->x <= element->absolute_x + element->width) ) {
+				if( (e->y >= element->absolute_y) && (e->y <= element->absolute_y + element->height) ) {
+					found_dispatcher = true;
+				}
 			}
 		}
 

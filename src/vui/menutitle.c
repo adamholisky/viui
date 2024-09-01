@@ -11,6 +11,7 @@ vui_handle vui_menu_title_create( char *text, vui_handle menu ) {
 
 	vui_menu *m = vui_get_handle_data(menu);
 	title->menu = m;
+	title->is_visible = true;
 	strcpy( title->text, text );
 
 	char temp[50];
@@ -19,7 +20,7 @@ vui_handle vui_menu_title_create( char *text, vui_handle menu ) {
 	strcpy( title->name, temp );
 	
 	m->menu_title = title;
-
+	
 	vui_set_handle_data( H, title );
 	vui_create_cleanup( H );
 	return H;
@@ -52,16 +53,6 @@ void vui_menu_title_draw_from_struct( vui_menu_title *title ) {
 
 	vui_draw_rect( title->absolute_x, title->absolute_y, title->width, title->height, bg_color );
 	vui_draw_string_ttf( title->text, title->x + 5, title->y + 5, theme->menubar_foreground, bg_color, vui_font_get_font("noto-sans-bold"), 13, VUI_DRAW_FLAGS_NONE );
-
-	if( title->is_showing_menu ) {
-		title->menu->is_visible = true;
-		vui_menu_set_display_location( title->menu, title->absolute_x, title->absolute_y + title->height );
-		vui_menu_draw_from_struct( title->menu );
-		vui_refresh_handle( title->menu->handle );
-	} else {
-		// For now refresh the entire screen ... should work this out so we just refresh an area.
-		title->menu->is_visible = false;
-	}
 }
 
 void vui_menu_title_on_mouse_enter( vui_event *e ) {
@@ -89,6 +80,9 @@ void vui_menu_title_on_mouse_down( vui_event *e ) {
 
 	vui_menu_title_draw_from_struct(mt);
 	vui_refresh_handle(e->H);
+
+	vui_menu_set_display_location( mt->menu, mt->absolute_x, mt->absolute_y + mt->height );
+	vui_menu_show(mt->menu->handle);
 }
 
 void vui_menu_title_on_mouse_up( vui_event *e ) {
@@ -96,8 +90,9 @@ void vui_menu_title_on_mouse_up( vui_event *e ) {
 
 	mt->is_showing_menu = false;
 
+
 	vui_menu_title_draw_from_struct(mt);
 	vui_refresh_handle(e->H);
-
-	vui_draw_parents();
+	
+	vui_menu_hide(mt->menu->handle);
 }
