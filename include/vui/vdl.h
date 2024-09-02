@@ -19,3 +19,23 @@
  * </alert>
  * 
  */
+
+/*
+
+<menu_bar>
+	<menu id="m_v" name="V">
+		<mitem id="mi_about">About...</mitem>
+		<mitem seperator />
+		<mitem id="mi_restart">Restart</mitem>
+		<mitem id="mi_shutdown">Shutdown</mitem>
+	</menu>
+	<menu id="m_file" name="File">
+		<mitem id="mi_run">Run...</mitem>
+	</menu>
+</menu_bar>
+
+
+
+
+
+*/

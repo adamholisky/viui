@@ -82,5 +82,10 @@ void vui_menu_item_on_mouse_up( vui_event *e ) {
 	vui_menu_item_draw_from_struct(item);
 	vui_refresh_handle(e->H);
 
-	vui_draw_parents();
+	vui_event menu_title_event;
+	vui_menu *m = item->menu;
+	vui_menu_title *title = m->menu_title;
+	menu_title_event.H = title->handle;
+
+	vui_menu_title_on_mouse_up(&menu_title_event);
 }
