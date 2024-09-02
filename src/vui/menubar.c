@@ -86,7 +86,7 @@ void vui_menubar_add_menu( vui_handle menubar, vui_handle menu ) {
 	vui_string_ttf_get_box( mt->text, vui_font_get_font("noto-sans-bold"), 13, &box_w, &box_h );
 	vui_menu_title_set_box( menu_title_handle, mb->next_menu_x, 0, box_w, 25 );
 
-	mb->next_menu_x = mb->next_menu_x + box_w + 10;
+	mb->next_menu_x = mb->next_menu_x + box_w + 17;
 
 	vui_add_to_parent( menubar, menu_title_handle );
 

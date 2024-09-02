@@ -94,12 +94,14 @@ void vui_draw_handle( vui_handle H ) {
 }
 
 void vui_draw_parents( void ) {
+	vui.do_complete_redraw = true;
+
 	for( int i = 0; i < vui.handle_next; i++ ) {
 		if( vui_is_dispatcher( vui.handles[i].type ) ) {
 			vui_common *vc = vui.handles[i].data;
 
 			if( vc->is_visible ) {
-				vdf( "Drawing %d\n", vui.handles[i].H );
+				//vdf( "Drawing %d\n", vui.handles[i].H );
 			
 				vui_draw_handle( vui.handles[i].H );
 
@@ -112,11 +114,13 @@ void vui_draw_parents( void ) {
 		}
 	}
 
+	vui.do_complete_redraw = false;
+
 	vui_refresh();
 }
 
 void vui_set_visible( vui_handle H, bool visible ) {
-	vdf( "Set Visible: %d\n", H );
+	//vdf( "Set Visible: %d\n", H );
 	vui_common *vc = vui.handles[H].data;
 
 	vc->is_visible = visible;
@@ -137,7 +141,7 @@ void vui_draw_children( vui_handle_list *children ) {
 	vui_handle_list *item = children;
 
 	while( item != NULL ) {
-		vdf( "    Drawing Child %d\n", item->H );
+		//vdf( "    Drawing Child %d\n", item->H );
 		vui_draw_handle( item->H );
 		item = item->next;
 	}

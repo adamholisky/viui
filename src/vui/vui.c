@@ -28,10 +28,12 @@ void vui_init( uint32_t *fb_addr, uint16_t width, uint16_t height ) {
 
 	vui.immediate_output = false;
 	vui.disable_font_smoothing = false;
+	vui.do_complete_redraw = false;
 
 	memset( vui.buffer, 0, 4 * width * height );
 
-	vui.active_theme.desktop = 0x00374760;
+	//  Light
+	/* vui.active_theme.desktop = 0x00374760;
 	vui.active_theme.border = 0x747474;
 	vui.active_theme.window_background = 0x00D6D6D6;
 	vui.active_theme.window_title_bar_background = 0x00363636;
@@ -42,7 +44,22 @@ void vui_init( uint32_t *fb_addr, uint16_t width, uint16_t height ) {
 	vui.active_theme.button_active = 0x003476;
 	vui.active_theme.menubar_background = 0xD9D9D9;
 	vui.active_theme.menubar_foreground = 0x363636;
-	vui.active_theme.menubar_select = 0xFF0000;
+	vui.active_theme.menubar_select = 0xFF0000; */
+
+	//  Dark
+	vui.active_theme.desktop = 0x00374760;
+	vui.active_theme.border = 0x303030;
+	vui.active_theme.window_background = 0x585858;
+	vui.active_theme.window_title_bar_background = 0x363636;
+	vui.active_theme.window_title_bar_foreground = 0x00EAEAEA;
+	vui.active_theme.button_border = 0x484848;
+	vui.active_theme.button_foreground = 0xD6D6D6;
+	vui.active_theme.button_background = 0x183F6C;	
+	vui.active_theme.button_hover = 0x265C9D;
+	vui.active_theme.button_active = 0x102B4C;
+	vui.active_theme.menubar_background = 0x363636;
+	vui.active_theme.menubar_foreground = 0xFFFFFF;
+	vui.active_theme.menubar_select = 0x265C9D; 
 }
 
 /**

@@ -6,7 +6,7 @@ extern "C" {
 
 #include "vui/vui.h"
 
-#define VUI_BUTTON_FLAG_NONE				0
+#define VUI_BUTTON_FLAG_NONE 0
 
 #define VUI_BUTTON_BORDER_SIZE 1
 #define VUI_BUTTON_TEXT_HEIGHT 20
@@ -18,6 +18,7 @@ typedef struct {
 
 	uint32_t flags;
 
+	uint32_t color_border;
 	uint32_t color_foreground;
 	uint32_t color_background;
 

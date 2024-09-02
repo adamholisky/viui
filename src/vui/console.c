@@ -2,6 +2,8 @@
 #include <vui/console.h>
 #include <vui/font.h>
 
+extern vui_core vui;
+
 /**
  * @brief 
  * 
@@ -108,6 +110,10 @@ void vui_console_draw( vui_handle H ) {
  * @param con 
  */
 void vui_console_draw_from_struct( vui_console *con ) {
+	if( vui.do_complete_redraw ) {
+		con->redraw_window = true;
+	}
+
 	if( con->redraw_window ) {
 		vui_draw_rect( con->pixel_x, con->pixel_y, con->pixel_width, con->pixel_height, con->bg_color );
 	}

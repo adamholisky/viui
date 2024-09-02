@@ -36,6 +36,7 @@ vui_handle vui_button_create( char *text, uint16_t x, uint16_t y, uint16_t width
 	button->inner_x = button->inner_x + VUI_BUTTON_BORDER_SIZE;
 	button->inner_y = button->inner_y + VUI_BUTTON_BORDER_SIZE;
 
+	button->color_border = theme->button_border;
 	button->color_foreground = theme->button_foreground;
 	button->color_background = theme->button_background;
 
@@ -72,7 +73,7 @@ void vui_button_draw_from_struct( vui_button *button ) {
 	}
 
 	// Border
-	vui_draw_rect( button->x, button->y, button->width, button->height, theme->border );
+	vui_draw_rect( button->x, button->y, button->width, button->height, button->color_border );
 
 	// Inner window
 	vui_draw_rect( button->inner_x, button->inner_y, button->inner_width, button->inner_height, bg_color );

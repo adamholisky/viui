@@ -49,7 +49,7 @@ void vui_menu_title_draw( vui_handle H ) {
 void vui_menu_title_draw_from_struct( vui_menu_title *title ) {
 	vui_theme *theme = vui_get_active_theme();
 
-	uint32_t bg_color = title->is_hover ? theme->menubar_select : theme->menubar_background;
+	uint32_t bg_color = title->is_hover || title->is_showing_menu ? theme->menubar_select : theme->menubar_background;
 
 	vui_draw_rect( title->absolute_x, title->absolute_y, title->width, title->height, bg_color );
 	vui_draw_string_ttf( title->text, title->x + 5, title->y + 5, theme->menubar_foreground, bg_color, vui_font_get_font("noto-sans-bold"), 13, VUI_DRAW_FLAGS_NONE );
@@ -91,7 +91,8 @@ void vui_menu_title_on_mouse_up( vui_event *e ) {
 	mt->is_showing_menu = false;
 
 
-	vui_menu_title_draw_from_struct(mt);
+	//vui_menu_title_draw_from_struct(mt);
+	vui_draw_parents();
 	vui_refresh_handle(e->H);
 	
 	vui_menu_hide(mt->menu->handle);

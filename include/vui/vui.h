@@ -71,6 +71,7 @@ typedef struct {
 	uint32_t window_background;
 	uint32_t window_title_bar_background;
 	uint32_t window_title_bar_foreground;
+	uint32_t button_border;
 	uint32_t button_foreground;
 	uint32_t button_background;
 	uint32_t button_active;
@@ -93,6 +94,7 @@ typedef struct {
 
 	bool immediate_output;
 	bool disable_font_smoothing;
+	bool do_complete_redraw;
 
 	vui_handle_list dispatchers;
 	vui_handle handle_next;
