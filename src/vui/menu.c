@@ -75,7 +75,7 @@ void vui_menu_calculate_dimensions( vui_menu *menu ) {
 	menu->item_height = 25;
 	
 	menu->width = width_max + 10 + 2; // 50 content, 10 = 5 padding on right left, 2 = border
-	menu->height = (menu->num_items * 25) + 10 + 2; // 25 per item, 5 padding on top bottom, 2 = border
+	menu->height = (menu->num_items * 25) + 2; // 25 per item, 5 padding on top bottom, 2 = border
 
 	menu->inner_x = menu->x + 1;
 	menu->inner_y = menu->y + 1;

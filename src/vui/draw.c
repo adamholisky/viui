@@ -107,6 +107,8 @@ void vui_draw_parents( void ) {
 
 				vui_common *v = vui.handles[i].data;
 
+				vdf( "Drawing with priority 0x%08X\n", v->priority );
+
 				if( v->num_children != 0 ) {
 					vui_draw_children( &v->children );
 				}

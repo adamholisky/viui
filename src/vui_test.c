@@ -11,6 +11,7 @@
 #include "vui/button.h"
 #include <vui/menubar.h>
 #include "vui/schrift.h"
+#include <vui/alert.h>
 
 vui_handle main_con;
 
@@ -167,6 +168,12 @@ void test_window_event_handler( vui_event *e ) {
 	if( e->type != VUI_EVENT_MOUSE_MOVE ) {
 		sprintf( str, "Event: %s    name=%s\n", vui_event_type_to_string(e->type), e->name );
 		vui_console_put_string( vui_get_handle_data(main_con), str );
+	}
+
+	if( e->type == VUI_EVENT_MOUSE_UP ) {
+		if( strcmp( e->name, "my_button_1" ) == 0 ) {
+			vui_simple_alert( "Hello, world?" );
+		}
 	}
 }
 

@@ -195,6 +195,7 @@ void vui_set_visible( vui_handle H, bool visible );
 
 bool vui_handle_list_add( vui_handle_list *list, vui_handle handle_to_add );
 void vui_sort_list_by_priority( vui_handle_list *list );
+void vui_refresh_priority_list( void );
 
 /**************************************/
 /* Drawing                            */

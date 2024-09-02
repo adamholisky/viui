@@ -44,7 +44,12 @@ void vui_menu_item_draw_from_struct( vui_menu_item *item ) {
 	uint32_t bg_color = item->is_hover ? theme->menubar_select : theme->menubar_background;
 
 	vui_draw_rect( item->absolute_x, item->absolute_y, item->width, item->height, bg_color );
-	vui_draw_string_ttf( item->text, item->x + 5, item->y + 5, theme->menubar_foreground, bg_color, vui_font_get_font("noto-sans-bold"), 13, VUI_DRAW_FLAGS_NONE );
+
+	if( strcmp( item->name, "seperator" ) == 0 ) {
+		vui_draw_rect( item->x + 5, item->y + 12, item->width - 10, 1, theme->menubar_foreground );
+	} else {
+		vui_draw_string_ttf( item->text, item->x + 5, item->y + 5, theme->menubar_foreground, bg_color, vui_font_get_font("noto-sans-bold"), 13, VUI_DRAW_FLAGS_NONE );
+	}
 }
 
 void vui_menu_item_on_mouse_enter( vui_event *e ) {

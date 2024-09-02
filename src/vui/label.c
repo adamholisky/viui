@@ -19,6 +19,7 @@ vui_handle vui_label_create( uint16_t x, uint16_t y, char *text, uint32_t flags,
 	label->color_background = COLOR_RGB_WHITE;
 	label->font = vui_font_get_main_font();
 	label->text = vmalloc( strlen(text) );
+	label->is_visible = true;
 	strcpy( label->text, text );
 
 	vui_set_handle_data( H, label );

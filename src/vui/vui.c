@@ -47,19 +47,19 @@ void vui_init( uint32_t *fb_addr, uint16_t width, uint16_t height ) {
 	vui.active_theme.menubar_select = 0xFF0000; */
 
 	//  Dark
-	vui.active_theme.desktop = 0x00374760;
-	vui.active_theme.border = 0x303030;
-	vui.active_theme.window_background = 0x585858;
+	vui.active_theme.desktop = 0x051022;
+	vui.active_theme.border = 0x363636;
+	vui.active_theme.window_background = 0x282828;
 	vui.active_theme.window_title_bar_background = 0x363636;
 	vui.active_theme.window_title_bar_foreground = 0x00EAEAEA;
-	vui.active_theme.button_border = 0x484848;
+	vui.active_theme.button_border = 0x183F6C;
 	vui.active_theme.button_foreground = 0xD6D6D6;
-	vui.active_theme.button_background = 0x183F6C;	
+	vui.active_theme.button_background = 0x0f4d95;	
 	vui.active_theme.button_hover = 0x265C9D;
 	vui.active_theme.button_active = 0x102B4C;
 	vui.active_theme.menubar_background = 0x363636;
 	vui.active_theme.menubar_foreground = 0xFFFFFF;
-	vui.active_theme.menubar_select = 0x265C9D; 
+	vui.active_theme.menubar_select = 0x0f4d95; 
 }
 
 /**
@@ -104,8 +104,16 @@ void vui_create_cleanup( vui_handle H ) {
 	}
 
 	if( vui_is_dispatcher(vc->type) ) {
+		if( vc->priority == 0 ) {
+			vc->priority = 1000;
+		}
+
 		vui_sort_list_by_priority( &vui.dispatchers );
 	}
+}
+
+void vui_refresh_priority_list( void ) {
+	vui_sort_list_by_priority( &vui.dispatchers );
 }
 
 /**
